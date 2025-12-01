@@ -1,0 +1,227 @@
+package mir.oslav.moaihead.ui
+
+import android.content.Context
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.Text
+import com.google.android.gms.wearable.Wearable
+import moaihead.data.EntrySource
+import moaihead.data.Mood
+import moaihead.data.PlainMoodRecord
+import moaihead.ui.MoaiHeadTheme
+import moaihead.ui.moodColorScheme
+
+
+/**
+ * @author Miroslav Hýbler <br>
+ * created on 11.11.2025
+ */
+class MainActivity : ComponentActivity() {
+
+    companion object {
+        private const val MOOD_PATH = "/moai/mood_entry"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+        super.onCreate(savedInstanceState)
+        setTheme(android.R.style.Theme_DeviceDefault)
+
+        setContent {
+            var pickedMood: Mood? by remember { mutableStateOf(value = null) }
+
+            BackHandler(enabled = pickedMood != null) {
+                pickedMood = null
+            }
+
+            MoaiHeadTheme {
+
+                AnimatedVisibility(
+                    visible = pickedMood == null,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    CircularMoodPicker(
+                        pickedMood = pickedMood,
+                        onPicked = {
+                            pickedMood = it
+                        }
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = pickedMood != null,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it }),
+                ) {
+                    pickedMood?.let { mood ->
+                        SubmitMoodLayout(
+                            mood = mood,
+                            onSubmit = {
+                                sendMoodToPhone(
+                                    record = PlainMoodRecord(
+                                        mood = mood.value,
+                                        timestamp = System.currentTimeMillis(),
+                                        note = null,
+                                        source = EntrySource.UserInitiative.value,
+                                    ),
+                                    callback = { isSuccess ->
+                                        pickedMood = null
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            if (isSuccess) "Success" else "Failure",
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
+                                )
+                            },
+                            onCancel = {
+                                pickedMood = null
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun sendMoodToPhone(
+        record: PlainMoodRecord,
+        callback: (Boolean) -> Unit,
+    ) {
+        val nodeClient = Wearable.getNodeClient(this)
+        val msgClient = Wearable.getMessageClient(this)
+
+        // Find connected phone
+        nodeClient.connectedNodes.addOnSuccessListener { nodes ->
+            if (nodes.isEmpty()) {
+                callback(false)
+                Toast.makeText(
+                    this@MainActivity,
+                    "No phone connected",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                return@addOnSuccessListener
+            }
+
+            val phoneNode = nodes.firstOrNull() ?: return@addOnSuccessListener
+            msgClient.sendMessage(
+                phoneNode.id,
+                MOOD_PATH,
+                PlainMoodRecord.Serializer.encode(record = record)
+            ).addOnSuccessListener {
+                callback(true)
+            }.addOnFailureListener { exception ->
+                exception.printStackTrace()
+                callback(false)
+            }
+
+        }.addOnFailureListener { exception ->
+            exception.printStackTrace()
+            callback(false)
+        }
+    }
+}
+
+
+@Composable
+fun Test() {
+    val layoutDirection = LocalLayoutDirection.current
+
+    var selectedMood: Mood? by remember { mutableStateOf(value = null) }
+
+    BackHandler(enabled = selectedMood != null) {
+        selectedMood = null
+    }
+
+    val scrollState = remember {
+        TransformingLazyColumnState()
+    }
+
+    ScreenScaffold(
+        scrollState = scrollState,
+        timeText = {
+            Text(text = "Time")
+        },
+        edgeButton = {
+            EdgeButton(onClick = {}) {
+                Text(text = "More")
+            }
+        },
+    ) { paddingValues ->
+        TransformingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = scrollState,
+            contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding(),
+                bottom = paddingValues.calculateBottomPadding(),
+            ),
+        ) {
+            items(items = Mood.entries.toList()) { mood ->
+                val colorScheme = moodColorScheme(mood = mood)
+                Row(
+                    modifier = Modifier.Companion
+                        .fillMaxWidth()
+                        .background(color = colorScheme.container)
+                        .clickable(onClick = {
+                            selectedMood = mood
+                        })
+                        .padding(
+                            start = paddingValues.calculateStartPadding(layoutDirection = layoutDirection),
+                            end = paddingValues.calculateStartPadding(layoutDirection = layoutDirection),
+                            top = 12.dp,
+                            bottom = 12.dp,
+                        ),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = colorScheme.primary,
+                                shape = CircleShape
+                            )
+                            .padding(all = 4.dp)
+                    ) {
+                        Text(text = mood.emoji)
+                    }
+                    Text(
+                        text = mood.name,
+                        color = colorScheme.onContainer,
+                    )
+                }
+            }
+        }
+    }
+}
