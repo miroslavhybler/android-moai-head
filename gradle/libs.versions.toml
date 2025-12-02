@@ -26,13 +26,12 @@ shapes = "1.1.0"
 playServicesWearable = "19.0.0"
 wearComposeMaterial3 = "1.6.0-alpha05"
 composeFoundation = "1.5.5"
+wearNavigation = "1.5.5"
 wearToolingPreview = "1.0.0"
 coreSplashscreen = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-
-
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -70,6 +69,9 @@ navigation3-adaptive = { group = "androidx.compose.material3.adaptive", name = "
 navigation3-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "nav3ViewModel" }
 
 serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx" }
+
+wear-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "wearNavigation" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,10 +1,9 @@
-package mir.oslav.moaihead.ui
+package mir.oslav.moaihead.compose
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

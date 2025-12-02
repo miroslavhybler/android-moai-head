@@ -56,13 +56,13 @@ mood
     ├── mood: 7            // int (1–10)
     ├── timestamp: 1709389200000
     ├── note: "Good meal"  // optional string
-    └── source: TODO       // int enum (define app-specific values)
+    └── source: 1       // int enum (define app-specific values)
 ```
 
 ### Fields
 
 | Field       | Type    | Description                                                    |
-| ----------- | ------- | -------------------------------------------------------------- |
+|-------------|---------|----------------------------------------------------------------|
 | `mood`      | int     | Mood level 1–10                                                |
 | `timestamp` | long    | When the mood was recorded                                     |
 | `note`      | string? | Optional “cause” or note                                       |
@@ -143,12 +143,3 @@ To use the app with Firestore:
 6. Add security rules to restrict access.
 
 You now have a fully functional backend for mood tracking.
-
----
-
-If you'd like, I can also generate:
-✅ a template `firebase.properties` loader
-✅ a Kotlin interface for syncing with Firestore
-✅ a full architecture diagram for Room + Firestore (“offline first”)
-
-Just let me know!

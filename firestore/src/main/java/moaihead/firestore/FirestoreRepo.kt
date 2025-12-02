@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import moaihead.data.EntrySource
 import moaihead.data.Mood
-import moaihead.data.MoodRecord
-import moaihead.data.PlainMoodRecord
+import moaihead.data.MoodEntry
+import moaihead.data.PlainMoodEntry
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,83 +32,65 @@ class FirestoreRepo @Inject constructor() {
     val isAuthorized: StateFlow<Boolean> = mIsAuthorized.asStateFlow()
 
 
-    private val mAllData: MutableStateFlow<List<MoodRecord>> = MutableStateFlow(value = emptyList())
-    val allData: StateFlow<List<MoodRecord>> = mAllData.asStateFlow()
+    private var isAuthorizing: Boolean = false
+
+    private val mAllData: MutableStateFlow<List<MoodEntry>> = MutableStateFlow(value = emptyList())
+    val allData: StateFlow<List<MoodEntry>> = mAllData.asStateFlow()
 
 
     init {
-   signIn()
+        signIn()
     }
 
-    fun signIn(){
+    fun signIn() {
+        if (isAuthorized.value || isAuthorizing) {
+            //Already authorized
+            return
+        }
+
+        isAuthorizing = true
         Firebase.auth
             .signInAnonymously()
             .addOnSuccessListener {
                 mIsAuthorized.value = true
-                test()
-                readAllData()
+                loadAllMoodEntries()
             }
-            .addOnFailureListener { e ->
-                Log.w("FirestoreRepo", "Error signing in", e)
+            .addOnFailureListener { exception ->
+                exception.printStackTrace()
                 mIsAuthorized.value = false
+            }.addOnCompleteListener {
+                isAuthorizing = false
             }
     }
 
 
-    fun insertMood(moodRecord: MoodRecord) {
+    fun insertOrUpdateMood(entry: MoodEntry) {
         if (!isAuthorized.value) {
             return
         }
 
-        insertMood(plainMoodRecord = moodRecord.toPlain())
+        insertOrUpdateMood(entry = entry.toPlain())
     }
 
 
-    fun insertMood(plainMoodRecord: PlainMoodRecord) {
-        if (!isAuthorized.value) {
-            return
-        }
-
-        firestore.collection("mood")
-            .document("${plainMoodRecord.timestamp}")
-            .set(plainMoodRecord.toFirestore())
-            .addOnSuccessListener {
-
-            }
-            .addOnFailureListener { e ->
-                Log.w("FirestoreRepo", "Error adding document", e)
-            }
-    }
-
-
-    fun test() {
+    fun insertOrUpdateMood(entry: PlainMoodEntry) {
         if (!isAuthorized.value) {
             return
         }
 
         firestore.collection("mood")
-            .get()
+            .document("${entry.timestamp}")
+            .set(entry.toFirestore())
             .addOnSuccessListener {
-                Log.d("FirestoreRepo", "Success reading collection, size: ${it.documents.size}")
-
-                if (it.documents.isEmpty() || it.documents.size == 1) {
-                    insertMood(
-                        plainMoodRecord = PlainMoodRecord(
-                            mood = 10,
-                            timestamp = System.currentTimeMillis(),
-                            note = null,
-                            source = 1,
-                        )
-                    )
-                }
+                loadAllMoodEntries()
             }
-            .addOnFailureListener { e ->
-                Log.w("FirestoreRepo", "Error reading collection", e)
+            .addOnFailureListener { exception ->
+                exception.printStackTrace()
             }
     }
 
 
-    fun readAllData() {
+    fun loadAllMoodEntries() {
         firestore.collection("mood")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
@@ -119,7 +101,7 @@ class FirestoreRepo @Inject constructor() {
                     val note = doc.getString("note")
                     val source = doc.getLong("source")?.toInt() ?: return@mapNotNull null
 
-                    MoodRecord(
+                    MoodEntry(
                         mood = Mood.entries
                             .find(predicate = { it.value == mood })
                             ?: return@mapNotNull null,
@@ -138,4 +120,29 @@ class FirestoreRepo @Inject constructor() {
     }
 
 
+    fun deleteMood(entry: MoodEntry) {
+        if (!isAuthorized.value) {
+            return
+        }
+
+        deleteMood(entry = entry.toPlain())
+    }
+
+
+    fun deleteMood(entry: PlainMoodEntry) {
+        if (!isAuthorized.value) {
+            return
+        }
+
+        firestore.collection("mood")
+            .document("${entry.timestamp}")
+            .delete()
+            .addOnSuccessListener {
+                mAllData.value = mAllData.value.filter(
+                    predicate = { it.timestamp.toEpochMilli() != entry.timestamp })
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+            }
+    }
 }

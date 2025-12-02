@@ -28,7 +28,3 @@ Current state: **simple proof of concept** — log mood on WearOS → send to ph
 
 Requires a custom Firebase project and your own `google-services.json`.
 See `docs/firebase_setup.md` for setup details.
-
----
-
-Let me know if you want a version with a logo, badges, or even shorter.

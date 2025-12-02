@@ -1,15 +1,15 @@
 package moaihead.firestore
 
-import moaihead.data.PlainMoodRecord
+import moaihead.data.PlainMoodEntry
 
 
 /**
- * Converts [PlainMoodRecord] info a [Map] to be stored in [com.google.firebase.firestore.FirebaseFirestore]
+ * Converts [PlainMoodEntry] info a [Map] to be stored in [com.google.firebase.firestore.FirebaseFirestore]
  * using [FirestoreRepo].
  * @author Miroslav Hýbler <br>
  * created on 18.11.2025
  */
-fun PlainMoodRecord.toFirestore(): Map<String, Any?> {
+fun PlainMoodEntry.toFirestore(): Map<String, Any?> {
     return mapOf(
         "mood" to mood,
         "timestamp" to timestamp,

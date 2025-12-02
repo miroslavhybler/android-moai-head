@@ -11,39 +11,34 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import mir.oslav.moaihead.compose.SubmitMoodLayout
 import moaihead.data.Mood
 
 
 /**
  * @author Miroslav Hýbler <br>
- * created on 25.11.2025
+ * created on 02.12.2025
  */
 @Composable
-fun SubmitMoodLayout(
-    modifier: Modifier = Modifier,
+fun NewEntryScreen(
+    onBack: () -> Unit,
     mood: Mood,
-    onSubmit: () -> Unit,
-    onCancel: () -> Unit,
+    onSubmitMoodEntry: (Mood) -> Unit,
 ) {
 
     ScreenScaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .pointerInput(key1 = Unit, block = { detectTapGestures(onTap = {}) }),
         scrollState = remember {
             TransformingLazyColumnState()
         },
@@ -84,27 +79,28 @@ fun SubmitMoodLayout(
                         alignment = Alignment.CenterVertically,
                     )
                 ) {
-                    Button(
+                    OutlinedButton(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(height = 48.dp),
-                        onClick = onSubmit,
+                            .height(height = 32.dp),
+                        onClick = onBack,
                     ) {
                         Text(
-                            text = "Submit",
+                            text = "Cancel",
                         )
                     }
 
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(height = 48.dp),
-                        onClick = onCancel,
+                            .height(height = 32.dp),
+                        onClick = { onSubmitMoodEntry(mood) },
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = "Submit",
                         )
                     }
+
                 }
             }
         },

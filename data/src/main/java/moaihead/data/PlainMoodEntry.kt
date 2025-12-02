@@ -9,7 +9,7 @@ import kotlinx.serialization.json.Json
  * created on 18.11.2025
  */
 @Serializable
-data class PlainMoodRecord constructor(
+data class PlainMoodEntry constructor(
     val mood: Int,
     val timestamp: Long,
     val note: String?,
@@ -24,11 +24,11 @@ data class PlainMoodRecord constructor(
 
 
     object Serializer {
-        fun encode(record: PlainMoodRecord): ByteArray {
+        fun encode(record: PlainMoodEntry): ByteArray {
             return json.encodeToString(value = record).encodeToByteArray()
         }
 
-        fun decode(bytes: ByteArray): PlainMoodRecord {
+        fun decode(bytes: ByteArray): PlainMoodEntry {
             return json.decodeFromString(string = bytes.decodeToString())
         }
     }

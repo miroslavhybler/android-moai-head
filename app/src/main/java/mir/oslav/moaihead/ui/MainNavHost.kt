@@ -10,18 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.serialization.Serializable
+import mir.oslav.moaihead.ui.entry.EntryScreen
 import mir.oslav.moaihead.ui.insert.InsertEntryScreen
 import mir.oslav.moaihead.ui.sourcedata.SourceDataScreen
-import kotlin.compareTo
-import kotlin.text.get
-import kotlin.text.set
 
 
 /**
@@ -57,6 +54,12 @@ fun MainNavHost() {
                         onBack = backstack::pop,
                     )
                 }
+                entry<Route.MoodEntry> { route ->
+                    EntryScreen(
+                        onBack = backstack::pop,
+                        route = route,
+                    )
+                }
             }
         ),
 
@@ -84,6 +87,12 @@ sealed class Route private constructor() : NavKey {
     @Keep
     @Serializable
     data object SourceData : Route()
+
+    @Keep
+    @Serializable
+    data class MoodEntry constructor(
+        val entry: moaihead.data.MoodEntry,
+    ) : Route()
 }
 
 

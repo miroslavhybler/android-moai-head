@@ -1,16 +1,11 @@
-package mir.oslav.moaihead.ui
+package mir.oslav.moaihead
 
-import android.content.Context
+import android.R
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -39,7 +34,7 @@ import androidx.wear.compose.material3.Text
 import com.google.android.gms.wearable.Wearable
 import moaihead.data.EntrySource
 import moaihead.data.Mood
-import moaihead.data.PlainMoodRecord
+import moaihead.data.PlainMoodEntry
 import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.moodColorScheme
 
@@ -57,69 +52,35 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        setTheme(android.R.style.Theme_DeviceDefault)
-
+        setTheme(R.style.Theme_DeviceDefault)
         setContent {
-            var pickedMood: Mood? by remember { mutableStateOf(value = null) }
-
-            BackHandler(enabled = pickedMood != null) {
-                pickedMood = null
-            }
-
             MoaiHeadTheme {
-
-                AnimatedVisibility(
-                    visible = pickedMood == null,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    CircularMoodPicker(
-                        pickedMood = pickedMood,
-                        onPicked = {
-                            pickedMood = it
-                        }
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = pickedMood != null,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it }),
-                ) {
-                    pickedMood?.let { mood ->
-                        SubmitMoodLayout(
-                            mood = mood,
-                            onSubmit = {
-                                sendMoodToPhone(
-                                    record = PlainMoodRecord(
-                                        mood = mood.value,
-                                        timestamp = System.currentTimeMillis(),
-                                        note = null,
-                                        source = EntrySource.UserInitiative.value,
-                                    ),
-                                    callback = { isSuccess ->
-                                        pickedMood = null
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            if (isSuccess) "Success" else "Failure",
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    }
-                                )
-                            },
-                            onCancel = {
-                                pickedMood = null
+                MainNavHost(
+                    onSubmitMoodEntry = { mood ->
+                        sendMoodToPhone(
+                            record = PlainMoodEntry(
+                                mood = mood.value,
+                                timestamp = System.currentTimeMillis(),
+                                note = null,
+                                source = EntrySource.UserInitiative.value,
+                            ),
+                            callback = { isSuccess ->
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    if (isSuccess) "Success" else "Failure",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
                             }
                         )
                     }
-                }
+                )
             }
         }
     }
 
 
     fun sendMoodToPhone(
-        record: PlainMoodRecord,
+        record: PlainMoodEntry,
         callback: (Boolean) -> Unit,
     ) {
         val nodeClient = Wearable.getNodeClient(this)
@@ -141,7 +102,7 @@ class MainActivity : ComponentActivity() {
             msgClient.sendMessage(
                 phoneNode.id,
                 MOOD_PATH,
-                PlainMoodRecord.Serializer.encode(record = record)
+                PlainMoodEntry.Serializer.encode(record = record)
             ).addOnSuccessListener {
                 callback(true)
             }.addOnFailureListener { exception ->

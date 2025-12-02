@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.shapes)
 
+    implementation(libs.wear.navigation)
+
     /** Hilt DI */
   //  implementation(dependencyNotation = libs.hilt.android)
    // ksp(dependencyNotation = libs.hilt.android.compiler)

@@ -3,7 +3,7 @@ package mir.oslav.moaihead.ui.insert
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import moaihead.data.Mood
-import moaihead.data.PlainMoodRecord
+import moaihead.data.PlainMoodEntry
 import moaihead.firestore.FirestoreRepo
 import javax.inject.Inject
 
@@ -22,8 +22,8 @@ class InsertViewModel @Inject constructor(
         mood: Mood,
         note: String?,
     ) {
-        repo.insertMood(
-            plainMoodRecord = PlainMoodRecord(
+        repo.insertOrUpdateMood(
+            entry = PlainMoodEntry(
                 mood = mood.value,
                 note = note,
                 timestamp = System.currentTimeMillis(),

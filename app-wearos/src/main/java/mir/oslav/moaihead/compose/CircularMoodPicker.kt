@@ -4,7 +4,7 @@
     "RedundantVisibilityModifier"
 )
 
-package mir.oslav.moaihead.ui
+package mir.oslav.moaihead.compose
 
 import androidx.annotation.FloatRange
 import androidx.compose.animation.Animatable
@@ -35,10 +35,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.inset
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -61,14 +58,11 @@ import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.MoodColorScheme
 import moaihead.ui.getMoodColorScheme
 import moaihead.ui.getPrimaryColors
-import moaihead.ui.moodColorScheme
 import moaihead.ui.shapes
-import kotlin.collections.plusAssign
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
-import kotlin.random.nextInt
 
 
 /**
@@ -82,7 +76,7 @@ private class MoodVisualisationState internal constructor(
 
     internal data class UIElement internal constructor(
         val shape: Path,
-        val position: Offset,
+        val center: Offset,
         val size: Size,
         val color: Color,
     ) {
@@ -150,7 +144,7 @@ private class MoodVisualisationState internal constructor(
         }
 
         if (lastMood != mood) {
-            val numberOfShapes = Random.nextInt(from = 2, until = 5)
+            val numberOfShapes = Random.nextInt(from = 3, until = 6)
 
             elements[lastMood]?.let { list ->
                 list.removeAll(predicate = UIElement::isInvalid)
@@ -167,7 +161,7 @@ private class MoodVisualisationState internal constructor(
             //TODO validate on position and size
             for (i in 0 until numberOfShapes) {
                 val shape = shapes.random()
-                val position = Offset(
+                val center = Offset(
                     x = Random.nextInt(from = 0, until = size.width).toFloat(),
                     y = Random.nextInt(from = 0, until = size.height).toFloat(),
                 )
@@ -177,16 +171,18 @@ private class MoodVisualisationState internal constructor(
                 ).toFloat()
 
                 val matrix = Matrix().apply {
-                    translate(x = position.x, y = position.y)
+                    translate(
+                        x = (size.width * 0.5f) - (dimen * 0.5f),
+                        y = (size.height * 0.5f) - (dimen * 0.5f),
+                    )
                     scale(x = dimen, y = dimen)
-                    rotateZ(degrees = Random.nextInt(from = 0, until = 360).toFloat())
                 }
 
                 val newElement = UIElement(
                     shape = shape.toPath().asComposePath().also { path ->
                         path.transform(matrix = matrix)
                     },
-                    position = position,
+                    center = center,
                     size = Size(width = dimen, height = dimen),
                     color = moodColorScheme.primary.copy(
                         alpha = Random.nextInt(
@@ -221,7 +217,9 @@ private class MoodVisualisationState internal constructor(
         launch {
             containerColor.animateTo(targetValue = initialContainerColor)
         }
-        val strokeSize = with(receiver = density) { 8f.dp.toPx() }
+        val strokeSize = with(receiver = density) {
+            if (lastMood != null) 8f.dp.toPx() else 16f.dp.toPx()
+        }
         strokeSizes.forEach { (m, a) ->
             if (a.targetValue != strokeSize) {
                 launch {
@@ -236,6 +234,9 @@ private class MoodVisualisationState internal constructor(
 }
 
 
+private const val START_ANGLE: Float = 270f
+
+
 /**
  * Circular picker for [Mood] designer for round WearOS Display
  * @author Miroslav Hýbler <br>
@@ -245,7 +246,6 @@ private class MoodVisualisationState internal constructor(
 fun CircularMoodPicker(
     modifier: Modifier = Modifier,
     onPicked: (Mood?) -> Unit,
-    pickedMood: Mood?,
 ) {
     val density = LocalDensity.current
     val materialColorScheme = MaterialTheme.colorScheme
@@ -309,18 +309,17 @@ fun CircularMoodPicker(
                             pointerX.snapTo(targetValue = dragOffset.x)
                             pointerY.snapTo(targetValue = dragOffset.y)
 
+                            //TODO include inner radius to enable "cancel"
+                            //TODO support both layout directions
                             val index = getClosestItemByAngle(
                                 x = pointerX.value,
                                 y = pointerY.value,
                                 cx = canvasSize.width * 0.5f,
                                 cy = canvasSize.height * 0.5f,
-                                startAngle = 0f,
+                                startAngle = START_ANGLE,
                                 sweepPerItem = 360f / Mood.entries.size,
                                 itemCount = 10,
                             )
-                            tempPickedMood = if (index != -1) Mood.entries[index] else null
-
-                            val newMood = tempPickedMood
                             progress = getPointerEdgeProgress(
                                 touchX = pointerX.value,
                                 touchY = pointerY.value,
@@ -329,6 +328,11 @@ fun CircularMoodPicker(
                                 outerRadius = canvasSize.width * 0.5f,
                                 innerRadius = canvasSize.width * 0.05f,
                             )
+
+                            tempPickedMood =
+                                if (index != -1 && progress > 0.1f) Mood.entries[index] else null
+                            val newMood = tempPickedMood
+
                             visualState.update(
                                 mood = newMood,
                                 moodColorScheme = newMood?.let {
@@ -383,20 +387,20 @@ fun CircularMoodPicker(
         drawRect(color = visualState.containerColor.value)
 
         val sweepAngle = 360f / Mood.entries.size
-        var startAngle = 0f
+        var startAngle = START_ANGLE
 
-        //Effects must be behing circual picker so the picker is fully visible
+        //Effects must be behind circular picker so the picker is fully visible
         visualState.elements
             .flatMap(transform = Map.Entry<Mood, SnapshotStateList<MoodVisualisationState.UIElement>>::value)
             .fastForEachIndexed { index, item ->
                 withTransform(
                     transformBlock = {
-                        rotate(degrees = item.animationSet.rotation.value)
-                        scale(scale = item.animationSet.scale.value)
                         translate(
-                            left = -item.size.width / 2f,
-                            top = -item.size.height / 2f
+                            left = item.center.x - item.size.width / 2f,
+                            top = item.center.y - item.size.height / 2f,
                         )
+                        scale(scale = item.animationSet.scale.value)
+                        rotate(degrees = item.animationSet.rotation.value)
                     },
                     drawBlock = {
                         drawPath(
@@ -406,55 +410,55 @@ fun CircularMoodPicker(
                         )
                     },
                 )
-
-
-                //Circular picker
-                moodColors.fastForEachIndexed { index, color ->
-                    drawArc(
-                        color = color,
-                        startAngle = startAngle,
-                        sweepAngle = sweepAngle,
-                        useCenter = false,
-                        style = Stroke(
-                            width = visualState.strokeSizes[Mood.entries[index]]!!.value,
-                            cap = StrokeCap.Round,
-                            miter = 4f,
-                        ),
-                    )
-                    startAngle += sweepAngle
-                }
-
-
-                if (tempPickedMood != null) {
-                    val topY =
-                        (canvasSize.height / 2) - (emojiTextResult.size.height / 2f) - (moodNameTextResult.size.height / 2f)
-                    drawText(
-                        textLayoutResult = emojiTextResult,
-                        topLeft = Offset(
-                            x = (canvasSize.width / 2) - (emojiTextResult.size.width / 2f),
-                            y = topY,
-                        ),
-                        alpha = progress,
-                    )
-                    drawText(
-                        textLayoutResult = moodNameTextResult,
-                        topLeft = Offset(
-                            x = (canvasSize.width / 2) - (moodNameTextResult.size.width / 2f),
-                            y = topY + emojiTextResult.size.height,
-                        ),
-                        alpha = progress,
-                    )
-                }
-
-
-                if (pointerX.value != -1f && pointerY.value != -1f) {
-                    drawCircle(
-                        color = materialColorScheme.onBackground,
-                        radius = 18.dp.toPx(),
-                        center = Offset(x = pointerX.value, y = pointerY.value),
-                    )
-                }
             }
+
+
+        //Circular picker
+        moodColors.fastForEachIndexed { index, color ->
+            drawArc(
+                color = color,
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                style = Stroke(
+                    width = visualState.strokeSizes[Mood.entries[index]]!!.value,
+                    cap = StrokeCap.Round,
+                    miter = 4f,
+                ),
+            )
+            startAngle += sweepAngle
+        }
+
+        if (tempPickedMood != null) {
+            val topY =
+                (canvasSize.height / 2) - (emojiTextResult.size.height / 2f) - (moodNameTextResult.size.height / 2f)
+
+            drawText(
+                textLayoutResult = emojiTextResult,
+                topLeft = Offset(
+                    x = (canvasSize.width / 2) - (emojiTextResult.size.width / 2f),
+                    y = topY,
+                ),
+                alpha = progress,
+            )
+
+            drawText(
+                textLayoutResult = moodNameTextResult,
+                topLeft = Offset(
+                    x = (canvasSize.width / 2) - (moodNameTextResult.size.width / 2f),
+                    y = topY + emojiTextResult.size.height,
+                ),
+                alpha = progress,
+            )
+        }
+
+        if (pointerX.value != -1f && pointerY.value != -1f) {
+            drawCircle(
+                color = materialColorScheme.onBackground,
+                radius = 18.dp.toPx(),
+                center = Offset(x = pointerX.value, y = pointerY.value),
+            )
+        }
     }
 }
 
@@ -527,7 +531,6 @@ private fun CircularMoodPickerPreview() {
         Box(modifier = Modifier.fillMaxSize()) {
             CircularMoodPicker(
                 onPicked = {},
-                pickedMood = null,
             )
         }
     }
