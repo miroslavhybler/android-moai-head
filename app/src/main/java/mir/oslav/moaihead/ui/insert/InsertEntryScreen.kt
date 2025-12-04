@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mir.oslav.moaihead.R
 import mir.oslav.moaihead.compose.PreviewUI
-import moaihead.data.Mood
+import moaihead.data.model.Mood
 import moaihead.ui.MoaiHeadTheme
 
 

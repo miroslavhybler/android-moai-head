@@ -5,7 +5,7 @@ package moaihead.ui
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
 import androidx.graphics.shapes.RoundedPolygon
-import moaihead.data.Mood
+import moaihead.data.model.Mood
 
 /**
  * @author Miroslav Hýbler <br>

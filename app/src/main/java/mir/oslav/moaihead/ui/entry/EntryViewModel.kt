@@ -1,9 +1,11 @@
 package mir.oslav.moaihead.ui.entry
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import moaihead.data.DataSourceRepository
-import moaihead.data.MoodEntry
+import moaihead.data.model.MoodEntry
 import javax.inject.Inject
 
 
@@ -21,18 +23,21 @@ class EntryViewModel @Inject constructor(
         note: String?,
         entry: MoodEntry
     ) {
-        firestoreRepo.insertOrUpdateMood(
-            entry = entry.copy(
-                note = note
-                    ?.takeIf(predicate = String::isNotBlank)
+        viewModelScope.launch {
+            firestoreRepo.insertOrUpdateMood(
+                entry = entry.copy(
+                    note = note
+                        ?.takeIf(predicate = String::isNotBlank)
+                )
             )
-        )
+        }
     }
 
 
-
     fun delete(entry: MoodEntry) {
-        firestoreRepo.deleteMood(entry = entry)
+        viewModelScope.launch {
+            firestoreRepo.deleteMood(entry = entry)
+        }
     }
 
 }

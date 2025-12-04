@@ -1,6 +1,6 @@
 package moaihead.firestore
 
-import moaihead.data.PlainMoodEntry
+import moaihead.data.model.PlainMoodEntry
 
 
 /**

@@ -1,8 +1,8 @@
-package moaihead.data
+package moaihead.data.model
 
 import androidx.annotation.Keep
-import com.mockup.annotations.Mockup
 import kotlinx.serialization.Serializable
+import moaihead.data.InstantSerializer
 import java.time.Instant
 
 

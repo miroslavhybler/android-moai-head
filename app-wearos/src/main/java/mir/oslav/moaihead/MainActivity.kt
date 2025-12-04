@@ -1,7 +1,6 @@
 package mir.oslav.moaihead
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,11 +29,8 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
-import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
-import moaihead.data.EntrySource
-import moaihead.data.Mood
-import moaihead.data.PlainMoodEntry
+import moaihead.data.model.Mood
 import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.moodColorScheme
 
@@ -46,9 +42,7 @@ import moaihead.ui.moodColorScheme
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    companion object {
-        private const val MOOD_PATH = "/moai/mood_entry"
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -56,64 +50,8 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
         setContent {
             MoaiHeadTheme {
-                MainNavHost(
-                    onSubmitMoodEntry = { mood ->
-                        sendMoodToPhone(
-                            record = PlainMoodEntry(
-                                mood = mood.value,
-                                timestamp = System.currentTimeMillis(),
-                                note = null,
-                                source = EntrySource.UserInitiative.value,
-                            ),
-                            callback = { isSuccess ->
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    if (isSuccess) "Success" else "Failure",
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            }
-                        )
-                    }
-                )
+                MainNavHost()
             }
-        }
-    }
-
-
-    fun sendMoodToPhone(
-        record: PlainMoodEntry,
-        callback: (Boolean) -> Unit,
-    ) {
-        val nodeClient = Wearable.getNodeClient(this)
-        val msgClient = Wearable.getMessageClient(this)
-
-        // Find connected phone
-        nodeClient.connectedNodes.addOnSuccessListener { nodes ->
-            if (nodes.isEmpty()) {
-                callback(false)
-                Toast.makeText(
-                    this@MainActivity,
-                    "No phone connected",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                return@addOnSuccessListener
-            }
-
-            val phoneNode = nodes.firstOrNull() ?: return@addOnSuccessListener
-            msgClient.sendMessage(
-                phoneNode.id,
-                MOOD_PATH,
-                PlainMoodEntry.Serializer.encode(record = record)
-            ).addOnSuccessListener {
-                callback(true)
-            }.addOnFailureListener { exception ->
-                exception.printStackTrace()
-                callback(false)
-            }
-
-        }.addOnFailureListener { exception ->
-            exception.printStackTrace()
-            callback(false)
         }
     }
 }

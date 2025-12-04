@@ -1,8 +1,7 @@
-package mir.oslav.moaihead
+package mir.oslav.moaihead.compose
 
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.tooling.preview.devices.WearDevices
-
 
 /**
  * @author Miroslav Hýbler <br>

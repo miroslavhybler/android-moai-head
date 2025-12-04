@@ -4,7 +4,11 @@ import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import moaihead.data.PlainMoodEntry
+import moaihead.data.model.EntrySource
+import moaihead.data.model.Mood
+import moaihead.data.model.MoodEntry
+import moaihead.data.model.PlainMoodEntry
+import java.time.Instant
 
 
 /**
@@ -13,7 +17,7 @@ import moaihead.data.PlainMoodEntry
  */
 @Keep
 @Entity(tableName = "mood")
-internal data class MoodEntity constructor(
+public data class MoodEntity constructor(
     @ColumnInfo(name = "mood", typeAffinity = ColumnInfo.INTEGER)
     val mood: Int,
     @ColumnInfo(name = "timestamp", typeAffinity = ColumnInfo.INTEGER)
@@ -37,14 +41,34 @@ internal data class MoodEntity constructor(
             )
         }
 
-        fun from(entry: MoodEntity): MoodEntity {
+        fun from(entry: MoodEntry): MoodEntity {
             return MoodEntity(
-                mood = entry.mood,
-                timestamp = entry.timestamp,
+                mood = entry.mood.value,
+                timestamp = entry.timestamp.toEpochMilli(),
                 note = entry.note,
-                source = entry.source,
+                source = entry.source.value,
             )
         }
+    }
+
+
+    fun toMoodEntry(): MoodEntry {
+        return MoodEntry(
+            mood = Mood.entries.first(predicate = { it.value == mood }),
+            timestamp = Instant.ofEpochMilli(timestamp),
+            note = note,
+            source = EntrySource.entries.first(predicate = { it.value == source }),
+        )
+    }
+
+
+    fun toPlainMoodEntry(): PlainMoodEntry {
+        return PlainMoodEntry(
+            mood = mood,
+            timestamp = timestamp,
+            note = note,
+            source = source,
+        )
     }
 
 }

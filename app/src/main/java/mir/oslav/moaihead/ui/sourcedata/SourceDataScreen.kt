@@ -2,6 +2,8 @@
 
 package mir.oslav.moaihead.ui.sourcedata
 
+import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,13 +27,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.wearable.Wearable
 import com.mockup.Mockup
+import mir.oslav.moaihead.R
 import mir.oslav.moaihead.compose.PreviewUI
 import mir.oslav.moaihead.ui.Route
-import moaihead.data.MoodEntry
-import moaihead.data.PlainMoodEntry
+import moaihead.data.Endpoints
+import moaihead.data.model.MoodEntry
+import moaihead.data.model.PlainMoodEntry
 
 
 /**
@@ -41,11 +49,50 @@ fun SourceDataScreen(
     onNavigate: (Route) -> Unit,
     viewModel: SourceDataViewModel = viewModel(),
 ) {
+    val activity = LocalActivity.current
     val data = viewModel.repo.moodData.collectAsState()
 
     SourceDataScreenImpl(
         data = data.value,
         onNavigate = onNavigate,
+        onRequestWearOSSync = {
+            if (activity != null) {
+                Wearable.getNodeClient(activity).connectedNodes
+                    .addOnSuccessListener { nodes ->
+                    nodes.firstOrNull()?.let { wearNode ->
+                        val messageClient = Wearable.getMessageClient(activity)
+
+                        messageClient.sendMessage(
+                            wearNode.id,
+                            Endpoints.FromPhoneToWear.REQUEST_SYNC,
+                            byteArrayOf()
+                        ).addOnSuccessListener {
+                            Toast.makeText(
+                                activity,
+                                "Synchronizing data",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                            .addOnFailureListener { exception ->
+                                exception.printStackTrace()
+                                Toast.makeText(
+                                    activity,
+                                    "Request failed",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }
+                    .addOnFailureListener { exception ->
+                        exception.printStackTrace()
+                        Toast.makeText(
+                            activity,
+                            "Unable to get nodes",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+            }
+        }
     )
 }
 
@@ -54,6 +101,7 @@ fun SourceDataScreen(
 private fun SourceDataScreenImpl(
     data: List<MoodEntry>,
     onNavigate: (Route) -> Unit,
+    onRequestWearOSSync: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -64,6 +112,14 @@ private fun SourceDataScreenImpl(
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
+                actions = {
+                    IconButton(onClick = onRequestWearOSSync) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_wear),
+                            contentDescription = null,
+                        )
+                    }
+                }
             )
         },
         content = { innerPadding ->
@@ -116,7 +172,7 @@ private fun SourceDataScreenImpl(
                         onNavigate(Route.InsertEntry)
                     },
                 ) {
-                    Text(text = "Insert")
+                    Text(text = "Insert New Entry")
                 }
             }
         },
@@ -130,5 +186,6 @@ private fun SourceDataScreenPreview() {
     SourceDataScreenImpl(
         data = Mockup.plainMoodEntry.list.map(transform = PlainMoodEntry::toMoodEntry),
         onNavigate = { _ -> },
+        onRequestWearOSSync = {},
     )
 }

@@ -1,11 +1,18 @@
 package mir.oslav.moaihead
 
+import android.util.Log
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import moaihead.data.DataSourceRepository
-import moaihead.data.PlainMoodEntry
+import moaihead.data.Endpoints
+import moaihead.data.model.PlainMoodEntry
 import javax.inject.Inject
 
 
@@ -19,6 +26,14 @@ class WearOsListenerService : WearableListenerService() {
     @Inject
     lateinit var repo: DataSourceRepository
 
+    private val coroutineScope = CoroutineScope(
+        context = Dispatchers.IO
+            .plus(context = CoroutineExceptionHandler { _, throwable ->
+                throwable.printStackTrace()
+            })
+            .plus(context = CoroutineName(name = "WearOsListenerService"))
+    )
+
     override fun onCreate() {
         super.onCreate()
     }
@@ -26,24 +41,17 @@ class WearOsListenerService : WearableListenerService() {
 
     override fun onMessageReceived(event: MessageEvent) {
         super.onMessageReceived(event)
-        val entry = PlainMoodEntry.Serializer.decode(bytes = event.data)
-        repo.insertOrUpdateMood(entry = entry)
-    }
-
-    override fun onDataChanged(p0: DataEventBuffer) {
-        super.onDataChanged(p0)
-
-        p0.map { it.dataItem.uri }
-            .forEach { uri ->
-                // Get the node ID from the host value of the URI.
-                val nodeId: String? = uri.host
-                // Set the data of the message to be the bytes of the URI.
-                val payload: ByteArray = uri.toString().toByteArray()
-
-                if (nodeId=="/moai/mood_entry") {
-                    val entry = PlainMoodEntry.Serializer.decode(bytes = payload)
+        when (event.path) {
+            Endpoints.FromWearToPhone.INSERT_MOOD_ENTRY -> {
+                val entry = PlainMoodEntry.Serializer.decode(bytes = event.data)
+                coroutineScope.launch {
                     repo.insertOrUpdateMood(entry = entry)
                 }
             }
+
+            else -> {
+                Log.e("WearOsListenerService", "(Phone) Unknown path: ${event.path}")
+            }
+        }
     }
 }

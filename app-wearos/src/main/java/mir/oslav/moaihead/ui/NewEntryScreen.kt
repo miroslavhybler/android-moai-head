@@ -1,7 +1,7 @@
 package mir.oslav.moaihead.ui
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,16 +15,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
-import mir.oslav.moaihead.compose.SubmitMoodLayout
-import moaihead.data.Mood
+import mir.oslav.moaihead.compose.PreviewWearOS
+import moaihead.data.model.EntrySource
+import moaihead.data.model.Mood
+import moaihead.data.model.MoodEntry
+import moaihead.ui.MoaiHeadTheme
+import java.time.Instant
 
 
 /**
@@ -33,6 +37,35 @@ import moaihead.data.Mood
  */
 @Composable
 fun NewEntryScreen(
+    onBack: () -> Unit,
+    mood: Mood,
+    newEntryViewModel: NewEntryViewModel = hiltViewModel(),
+) {
+
+    val activity = LocalActivity.current
+
+    NewEntryScreenImpl(
+        onBack = onBack,
+        mood = mood,
+        onSubmitMoodEntry = {
+            if (activity != null) {
+                newEntryViewModel.insert(
+                    moodEntry = MoodEntry(
+                        mood = mood,
+                        timestamp = Instant.ofEpochMilli(System.currentTimeMillis()),
+                        note = null,
+                        source = EntrySource.UserInitiative,
+                    ),
+                    activity = activity,
+                    onFinish = onBack
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun NewEntryScreenImpl(
     onBack: () -> Unit,
     mood: Mood,
     onSubmitMoodEntry: (Mood) -> Unit,
@@ -105,4 +138,17 @@ fun NewEntryScreen(
             }
         },
     )
+}
+
+
+@Composable
+@PreviewWearOS
+private fun NewEntryScreenPreview() {
+    MoaiHeadTheme() {
+        NewEntryScreenImpl(
+            onBack = {},
+            mood = Mood.entries.first(),
+            onSubmitMoodEntry = {},
+        )
+    }
 }

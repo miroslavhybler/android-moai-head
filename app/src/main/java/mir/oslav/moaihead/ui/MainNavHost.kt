@@ -91,7 +91,7 @@ sealed class Route private constructor() : NavKey {
     @Keep
     @Serializable
     data class MoodEntry constructor(
-        val entry: moaihead.data.MoodEntry,
+        val entry: moaihead.data.model.MoodEntry,
     ) : Route()
 }
 

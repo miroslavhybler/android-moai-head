@@ -9,8 +9,7 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import mir.oslav.moaihead.ui.HomeScreen
 import mir.oslav.moaihead.ui.NewEntryScreen
-import moaihead.data.Mood
-import moaihead.data.MoodEntry
+import moaihead.data.model.Mood
 
 
 /**
@@ -18,9 +17,7 @@ import moaihead.data.MoodEntry
  * created on 02.12.2025
  */
 @Composable
-fun MainNavHost(
-    onSubmitMoodEntry: (mood: Mood) -> Unit,
-) {
+fun MainNavHost() {
     val navController = rememberSwipeDismissableNavController()
 
     AppScaffold {
@@ -48,7 +45,6 @@ fun MainNavHost(
                 val mood = entry.arguments?.getInt("mood") ?: Mood.CALM.value
                 NewEntryScreen(
                     mood = Mood.entries.first(predicate = { it.value == mood }),
-                    onSubmitMoodEntry = onSubmitMoodEntry,
                     onBack = { navController.navigateUp() },
                 )
             }

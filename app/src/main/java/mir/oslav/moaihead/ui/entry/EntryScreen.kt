@@ -39,9 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mir.oslav.moaihead.compose.PreviewUI
 import mir.oslav.moaihead.ui.Route
-import moaihead.data.EntrySource
-import moaihead.data.Mood
-import moaihead.data.MoodEntry
+import moaihead.data.model.EntrySource
+import moaihead.data.model.Mood
+import moaihead.data.model.MoodEntry
 import mir.oslav.moaihead.R
 import moaihead.ui.MoaiHeadTheme
 import java.time.Instant

@@ -43,7 +43,7 @@ internal abstract class LocalDatabase public constructor() : RoomDatabase() {
 
     companion object {
 
-        fun create(context: Context): LocalDatabase {
+        internal fun create(context: Context): LocalDatabase {
             return Room.databaseBuilder(
                 context = context,
                 klass = LocalDatabase::class.java,
@@ -54,27 +54,30 @@ internal abstract class LocalDatabase public constructor() : RoomDatabase() {
     }
 
 
+    internal abstract fun moodDao(): MoodDao
+
+
     /**
      * Base DAO interface.
      */
     internal interface BaseDao<T> {
 
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        fun insert(item: T): Long
+        suspend fun insert(item: T): Long
 
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        fun insert(items: List<T>): Unit
+        suspend fun insert(items: List<T>): Unit
 
         @Update(onConflict = OnConflictStrategy.REPLACE)
-        fun update(item: T): Unit
+        suspend fun update(item: T): Unit
 
         @Update(onConflict = OnConflictStrategy.REPLACE)
-        fun update(items: List<T>): Unit
+        suspend fun update(items: List<T>): Unit
 
         @Delete
-        fun delete(item: T): Unit
+        suspend fun delete(item: T): Unit
 
         @Delete
-        fun delete(items: List<T>): Unit
+        suspend fun delete(items: List<T>): Unit
     }
 }

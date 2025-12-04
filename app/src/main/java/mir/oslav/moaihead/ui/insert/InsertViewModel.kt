@@ -1,10 +1,12 @@
 package mir.oslav.moaihead.ui.insert
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import moaihead.data.DataSourceRepository
-import moaihead.data.Mood
-import moaihead.data.PlainMoodEntry
+import moaihead.data.model.Mood
+import moaihead.data.model.PlainMoodEntry
 import javax.inject.Inject
 
 
@@ -22,13 +24,15 @@ class InsertViewModel @Inject constructor(
         mood: Mood,
         note: String?,
     ) {
-        repo.insertOrUpdateMood(
-            entry = PlainMoodEntry(
-                mood = mood.value,
-                note = note,
-                timestamp = System.currentTimeMillis(),
-                source = 1,
+        viewModelScope.launch{
+            repo.insertOrUpdateMood(
+                entry = PlainMoodEntry(
+                    mood = mood.value,
+                    note = note,
+                    timestamp = System.currentTimeMillis(),
+                    source = 1,
+                )
             )
-        )
+        }
     }
 }

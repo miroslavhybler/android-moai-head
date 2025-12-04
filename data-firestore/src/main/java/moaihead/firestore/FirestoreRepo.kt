@@ -5,14 +5,19 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import moaihead.data.DataSourceRepository
-import moaihead.data.EntrySource
-import moaihead.data.Mood
-import moaihead.data.MoodEntry
-import moaihead.data.PlainMoodEntry
+import moaihead.data.model.EntrySource
+import moaihead.data.model.Mood
+import moaihead.data.model.MoodEntry
+import moaihead.data.model.PlainMoodEntry
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,15 +40,26 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
     private var isAuthorizing: Boolean = false
 
     private val mAllData: MutableStateFlow<List<MoodEntry>> = MutableStateFlow(value = emptyList())
-   override val moodData: StateFlow<List<MoodEntry>> = mAllData.asStateFlow()
+    override val moodData: StateFlow<List<MoodEntry>> = mAllData.asStateFlow()
+
+
+    private val coroutineScope = CoroutineScope(
+        context = Dispatchers.IO
+            .plus(context = CoroutineExceptionHandler { _, throwable ->
+                throwable.printStackTrace()
+            })
+            .plus(context = CoroutineName(name = "FirestoreRepo"))
+    )
 
 
     init {
-        signIn()
+        coroutineScope.launch {
+            signIn()
+        }
     }
 
 
-    override fun loadAllMoodData() {
+    override suspend fun loadAllMoodData() {
         firestore.collection("mood")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
@@ -73,7 +89,7 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
     }
 
 
-    fun signIn() {
+    suspend fun signIn() {
         if (isAuthorized.value || isAuthorizing) {
             //Already authorized
             return
@@ -84,7 +100,9 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
             .signInAnonymously()
             .addOnSuccessListener {
                 mIsAuthorized.value = true
-                loadAllMoodData()
+                coroutineScope.launch {
+                    loadAllMoodData()
+                }
             }
             .addOnFailureListener { exception ->
                 exception.printStackTrace()
@@ -95,7 +113,7 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
     }
 
 
-    override fun insertOrUpdateMood(entry: MoodEntry) {
+    override suspend fun insertOrUpdateMood(entry: MoodEntry) {
         if (!isAuthorized.value) {
             return
         }
@@ -104,7 +122,7 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
     }
 
 
-    override fun insertOrUpdateMood(entry: PlainMoodEntry) {
+    override suspend fun insertOrUpdateMood(entry: PlainMoodEntry) {
         if (!isAuthorized.value) {
             return
         }
@@ -113,7 +131,9 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
             .document("${entry.timestamp}")
             .set(entry.toFirestore())
             .addOnSuccessListener {
-                loadAllMoodData()
+                coroutineScope.launch {
+                    loadAllMoodData()
+                }
             }
             .addOnFailureListener { exception ->
                 exception.printStackTrace()
@@ -121,7 +141,7 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
     }
 
 
-    override fun deleteMood(entry: MoodEntry) {
+    override suspend fun deleteMood(entry: MoodEntry) {
         if (!isAuthorized.value) {
             return
         }

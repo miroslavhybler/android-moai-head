@@ -1,4 +1,4 @@
-package moaihead.data
+package moaihead.data.model
 
 import androidx.annotation.Keep
 import com.mockup.annotations.Mockup
@@ -38,8 +38,8 @@ data class PlainMoodEntry constructor(
 
 
     object Serializer {
-        fun encode(record: PlainMoodEntry): ByteArray {
-            return json.encodeToString(value = record).encodeToByteArray()
+        fun encode(entry: PlainMoodEntry): ByteArray {
+            return json.encodeToString(value = entry).encodeToByteArray()
         }
 
         fun decode(bytes: ByteArray): PlainMoodEntry {

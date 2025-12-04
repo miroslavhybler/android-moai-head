@@ -1,4 +1,4 @@
-package moaihead.data
+package moaihead.data.model
 
 
 /**

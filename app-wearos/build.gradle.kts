@@ -69,6 +69,8 @@ dependencies {
     implementation(dependencyNotation = libs.androidx.activity.compose)
     implementation(dependencyNotation = libs.androidx.core.splashscreen)
     implementation(dependencyNotation = libs.androidx.shapes)
+    implementation(dependencyNotation = libs.androidx.lifecycle.runtime.ktx)
+
     implementation(dependencyNotation = libs.wear.navigation)
 
     /** WearOS Tiles (https://developer.android.com/codelabs/wear-tiles) */
@@ -88,7 +90,7 @@ dependencies {
     ksp(dependencyNotation = libs.hilt.android.compiler)
     implementation(dependencyNotation = libs.hilt.common)
     ksp(dependencyNotation = libs.dagger.compiler)
-    // implementation(dependencyNotation = libs.hilt.navigation.compose)
+    implementation(dependencyNotation = libs.hilt.navigation.compose)
 
     androidTestImplementation(dependencyNotation = platform(libs.androidx.compose.bom))
     androidTestImplementation(dependencyNotation = libs.androidx.compose.ui.test.junit4)

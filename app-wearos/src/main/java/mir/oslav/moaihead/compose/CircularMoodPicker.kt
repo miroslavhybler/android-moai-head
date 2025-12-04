@@ -52,8 +52,8 @@ import androidx.graphics.shapes.toPath
 import androidx.wear.compose.material3.MaterialTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import mir.oslav.moaihead.PreviewWearOS
-import moaihead.data.Mood
+import mir.oslav.moaihead.compose.PreviewWearOS
+import moaihead.data.model.Mood
 import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.MoodColorScheme
 import moaihead.ui.getMoodColorScheme

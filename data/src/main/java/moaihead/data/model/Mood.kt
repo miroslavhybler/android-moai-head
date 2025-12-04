@@ -1,6 +1,6 @@
 @file:Suppress("RedundantVisibilityModifier")
 
-package moaihead.data
+package moaihead.data.model
 
 
 /**
