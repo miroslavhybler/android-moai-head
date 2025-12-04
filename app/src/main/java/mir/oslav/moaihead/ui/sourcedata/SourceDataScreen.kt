@@ -13,25 +13,23 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import mir.oslav.moaihead.R
+import com.mockup.Mockup
 import mir.oslav.moaihead.compose.PreviewUI
 import mir.oslav.moaihead.ui.Route
 import moaihead.data.MoodEntry
+import moaihead.data.PlainMoodEntry
 
 
 /**
@@ -43,7 +41,7 @@ fun SourceDataScreen(
     onNavigate: (Route) -> Unit,
     viewModel: SourceDataViewModel = viewModel(),
 ) {
-    val data = viewModel.repo.allData.collectAsState()
+    val data = viewModel.repo.moodData.collectAsState()
 
     SourceDataScreenImpl(
         data = data.value,
@@ -84,6 +82,7 @@ private fun SourceDataScreenImpl(
                             .clickable(onClick = { onNavigate(Route.MoodEntry(entry = it)) })
                             .padding(vertical = 4.dp, horizontal = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(text = it.mood.emoji)
 
@@ -107,7 +106,7 @@ private fun SourceDataScreenImpl(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 20.dp),
             ) {
                 Button(
                     modifier = Modifier
@@ -129,7 +128,7 @@ private fun SourceDataScreenImpl(
 @PreviewUI
 private fun SourceDataScreenPreview() {
     SourceDataScreenImpl(
-        data = emptyList(),
+        data = Mockup.plainMoodEntry.list.map(transform = PlainMoodEntry::toMoodEntry),
         onNavigate = { _ -> },
     )
 }

@@ -16,6 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io") {
+            content {
+                includeGroupByRegex("com\\.github.*")
+            }
+        }
     }
 }
 
@@ -27,4 +32,5 @@ include(":app-wearos")
 //Other modules
 include(":data")
 include(":ui")
-include(":firestore")
+include(":data-firestore")
+include(":data-room")

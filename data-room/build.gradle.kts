@@ -1,13 +1,12 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-
+    alias(notation = libs.plugins.android.library)
+    alias(notation = libs.plugins.kotlin.android)
     alias(notation = libs.plugins.ksp)
-    alias(notation = libs.plugins.hilt)
+
 }
 
 android {
-    namespace = "moaihead.firestore"
+    namespace = "moaihead.room"
     compileSdk {
         version = release(36)
     }
@@ -38,27 +37,29 @@ android {
     kotlin {
         jvmToolchain(jdkVersion = 11)
     }
+    ksp {
+        arg(k = "room.schemaLocation", v = "${projectDir.path}/room-schemas")
+    }
 }
 
 dependencies {
 
-    implementation(project(":data"))
+    implementation(dependencyNotation = project(":data"))
 
-    implementation(libs.androidx.core.ktx)
-
-    /** Firebase */
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.auth)
+    /** Room Database for local data storage (https://developer.android.com/training/data-storage/room) */
+    implementation(dependencyNotation = libs.room.runtime)
+    implementation(dependencyNotation = libs.room.ktx)
+    ksp(dependencyNotation = libs.room.compiler)
 
 
+    /** Hilt DI for dependency injection (https://developer.android.com/training/dependency-injection/hilt-android) */
     implementation(dependencyNotation = libs.hilt.android)
     ksp(dependencyNotation = libs.hilt.android.compiler)
     implementation(dependencyNotation = libs.hilt.common)
     ksp(dependencyNotation = libs.hilt.compiler)
-    implementation(dependencyNotation = libs.hilt.navigation.compose)
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+
+    testImplementation(dependencyNotation = libs.junit)
+    androidTestImplementation(dependencyNotation = libs.androidx.junit)
+    androidTestImplementation(dependencyNotation = libs.androidx.espresso.core)
 }

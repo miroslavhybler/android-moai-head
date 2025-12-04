@@ -4,8 +4,8 @@ import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
+import moaihead.data.DataSourceRepository
 import moaihead.data.PlainMoodEntry
-import moaihead.firestore.FirestoreRepo
 import javax.inject.Inject
 
 
@@ -17,18 +17,17 @@ import javax.inject.Inject
 class WearOsListenerService : WearableListenerService() {
 
     @Inject
-    lateinit var firestoreRepo: FirestoreRepo
+    lateinit var repo: DataSourceRepository
 
     override fun onCreate() {
         super.onCreate()
-        firestoreRepo.signIn()
     }
 
 
     override fun onMessageReceived(event: MessageEvent) {
         super.onMessageReceived(event)
-        val record = PlainMoodEntry.Serializer.decode(bytes = event.data)
-        firestoreRepo.insertOrUpdateMood(entry = record)
+        val entry = PlainMoodEntry.Serializer.decode(bytes = event.data)
+        repo.insertOrUpdateMood(entry = entry)
     }
 
     override fun onDataChanged(p0: DataEventBuffer) {
@@ -42,8 +41,8 @@ class WearOsListenerService : WearableListenerService() {
                 val payload: ByteArray = uri.toString().toByteArray()
 
                 if (nodeId=="/moai/mood_entry") {
-                    val record = PlainMoodEntry.Serializer.decode(bytes = payload)
-                    firestoreRepo.insertOrUpdateMood(entry = record)
+                    val entry = PlainMoodEntry.Serializer.decode(bytes = payload)
+                    repo.insertOrUpdateMood(entry = entry)
                 }
             }
     }

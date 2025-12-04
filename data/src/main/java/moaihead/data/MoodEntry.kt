@@ -1,5 +1,7 @@
 package moaihead.data
 
+import androidx.annotation.Keep
+import com.mockup.annotations.Mockup
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -9,6 +11,7 @@ import java.time.Instant
  * created on 24.11.2025
  */
 @Serializable
+@Keep
 data class MoodEntry constructor(
     val mood: Mood,
     @Serializable(with = InstantSerializer::class)

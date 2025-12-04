@@ -10,4 +10,4 @@ import androidx.wear.tooling.preview.devices.WearDevices
  */
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.SQUARE, showSystemUi = true)
-public annotation class WearOSPreview public constructor()
+public annotation class PreviewWearOS public constructor()

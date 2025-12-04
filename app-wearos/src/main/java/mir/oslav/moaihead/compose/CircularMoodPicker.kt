@@ -52,7 +52,7 @@ import androidx.graphics.shapes.toPath
 import androidx.wear.compose.material3.MaterialTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import mir.oslav.moaihead.WearOSPreview
+import mir.oslav.moaihead.PreviewWearOS
 import moaihead.data.Mood
 import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.MoodColorScheme
@@ -525,7 +525,7 @@ private fun getPointerEdgeProgress(
 
 
 @Composable
-@WearOSPreview
+@PreviewWearOS
 private fun CircularMoodPickerPreview() {
     MoaiHeadTheme() {
         Box(modifier = Modifier.fillMaxSize()) {

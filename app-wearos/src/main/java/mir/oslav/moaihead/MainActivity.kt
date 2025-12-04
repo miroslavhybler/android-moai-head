@@ -1,6 +1,5 @@
 package mir.oslav.moaihead
 
-import android.R
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -32,6 +31,7 @@ import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import com.google.android.gms.wearable.Wearable
+import dagger.hilt.android.AndroidEntryPoint
 import moaihead.data.EntrySource
 import moaihead.data.Mood
 import moaihead.data.PlainMoodEntry
@@ -43,6 +43,7 @@ import moaihead.ui.moodColorScheme
  * @author Miroslav Hýbler <br>
  * created on 11.11.2025
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     companion object {
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        setTheme(R.style.Theme_DeviceDefault)
+        setTheme(android.R.style.Theme_DeviceDefault)
         setContent {
             MoaiHeadTheme {
                 MainNavHost(

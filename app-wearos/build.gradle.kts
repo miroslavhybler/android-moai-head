@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(notation = libs.plugins.android.application)
+    alias(notation = libs.plugins.kotlin.android)
+    alias(notation = libs.plugins.kotlin.compose)
 
-   // alias(notation = libs.plugins.ksp)
-   // alias(notation = libs.plugins.hilt)
+    alias(notation = libs.plugins.ksp)
+    alias(notation = libs.plugins.hilt)
 }
 
 android {
@@ -51,35 +51,47 @@ android {
 }
 
 dependencies {
-    implementation(project(":data"))
-    implementation(project(":ui"))
+    implementation(dependencyNotation = project(":ui"))
+    implementation(dependencyNotation = project(":data"))
+    //Room used for storing data temporarily when phone is not available
+    implementation(dependencyNotation = project(":data-room"))
 
 
-    implementation(libs.play.services.wearable)
 
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.wear.compose.material3)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.wear.tooling.preview)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.shapes)
+    implementation(dependencyNotation = platform(libs.androidx.compose.bom))
+    implementation(dependencyNotation = libs.androidx.compose.ui)
+    implementation(dependencyNotation = libs.androidx.compose.ui.graphics)
+    implementation(dependencyNotation = libs.androidx.compose.ui.tooling.preview)
+    implementation(dependencyNotation = libs.wear.compose.material3)
+    implementation(dependencyNotation = libs.androidx.compose.material3)
+    implementation(dependencyNotation = libs.androidx.compose.foundation)
+    implementation(dependencyNotation = libs.androidx.wear.tooling.preview)
+    implementation(dependencyNotation = libs.androidx.activity.compose)
+    implementation(dependencyNotation = libs.androidx.core.splashscreen)
+    implementation(dependencyNotation = libs.androidx.shapes)
+    implementation(dependencyNotation = libs.wear.navigation)
 
-    implementation(libs.wear.navigation)
+    /** WearOS Tiles (https://developer.android.com/codelabs/wear-tiles) */
+    implementation(dependencyNotation = libs.wear.tiles)
+    debugImplementation(dependencyNotation = libs.wear.tiles.tooling)
+    debugImplementation(dependencyNotation = libs.wear.tiles.tooling.preview)
+    implementation(dependencyNotation = libs.horologist.compose)
+    implementation(dependencyNotation = libs.horologist.tiles)
+
+    implementation(dependencyNotation = libs.play.services.wearable)
+    implementation(dependencyNotation = libs.wear.protolayout)
+    implementation(dependencyNotation = libs.wear.protolayout.expression)
+    implementation(dependencyNotation = libs.wear.protolayout.material3)
 
     /** Hilt DI */
-  //  implementation(dependencyNotation = libs.hilt.android)
-   // ksp(dependencyNotation = libs.hilt.android.compiler)
-  //  implementation(dependencyNotation = libs.hilt.common)
- //   ksp(dependencyNotation = libs.dagger.compiler)
-   // implementation(dependencyNotation = libs.hilt.navigation.compose)
+    implementation(dependencyNotation = libs.hilt.android)
+    ksp(dependencyNotation = libs.hilt.android.compiler)
+    implementation(dependencyNotation = libs.hilt.common)
+    ksp(dependencyNotation = libs.dagger.compiler)
+    // implementation(dependencyNotation = libs.hilt.navigation.compose)
 
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(dependencyNotation = platform(libs.androidx.compose.bom))
+    androidTestImplementation(dependencyNotation = libs.androidx.compose.ui.test.junit4)
+    debugImplementation(dependencyNotation = libs.androidx.compose.ui.tooling)
+    debugImplementation(dependencyNotation = libs.androidx.compose.ui.test.manifest)
 }

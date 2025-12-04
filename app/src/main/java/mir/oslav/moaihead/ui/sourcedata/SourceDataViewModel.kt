@@ -2,7 +2,7 @@ package mir.oslav.moaihead.ui.sourcedata
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import moaihead.firestore.FirestoreRepo
+import moaihead.data.DataSourceRepository
 import javax.inject.Inject
 
 
@@ -12,6 +12,6 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SourceDataViewModel @Inject constructor(
-    val repo: FirestoreRepo,
+    val repo: DataSourceRepository,
 ) : ViewModel() {
 }

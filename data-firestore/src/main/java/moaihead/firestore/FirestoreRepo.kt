@@ -1,6 +1,5 @@
 package moaihead.firestore
 
-import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +8,7 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import moaihead.data.DataSourceRepository
 import moaihead.data.EntrySource
 import moaihead.data.Mood
 import moaihead.data.MoodEntry
@@ -23,7 +23,7 @@ import javax.inject.Singleton
  * created on 18.11.2025
  */
 @Singleton
-class FirestoreRepo @Inject constructor() {
+class FirestoreRepo @Inject constructor() : DataSourceRepository {
 
 
     private val firestore: FirebaseFirestore = Firebase.firestore
@@ -35,62 +35,15 @@ class FirestoreRepo @Inject constructor() {
     private var isAuthorizing: Boolean = false
 
     private val mAllData: MutableStateFlow<List<MoodEntry>> = MutableStateFlow(value = emptyList())
-    val allData: StateFlow<List<MoodEntry>> = mAllData.asStateFlow()
+   override val moodData: StateFlow<List<MoodEntry>> = mAllData.asStateFlow()
 
 
     init {
         signIn()
     }
 
-    fun signIn() {
-        if (isAuthorized.value || isAuthorizing) {
-            //Already authorized
-            return
-        }
 
-        isAuthorizing = true
-        Firebase.auth
-            .signInAnonymously()
-            .addOnSuccessListener {
-                mIsAuthorized.value = true
-                loadAllMoodEntries()
-            }
-            .addOnFailureListener { exception ->
-                exception.printStackTrace()
-                mIsAuthorized.value = false
-            }.addOnCompleteListener {
-                isAuthorizing = false
-            }
-    }
-
-
-    fun insertOrUpdateMood(entry: MoodEntry) {
-        if (!isAuthorized.value) {
-            return
-        }
-
-        insertOrUpdateMood(entry = entry.toPlain())
-    }
-
-
-    fun insertOrUpdateMood(entry: PlainMoodEntry) {
-        if (!isAuthorized.value) {
-            return
-        }
-
-        firestore.collection("mood")
-            .document("${entry.timestamp}")
-            .set(entry.toFirestore())
-            .addOnSuccessListener {
-                loadAllMoodEntries()
-            }
-            .addOnFailureListener { exception ->
-                exception.printStackTrace()
-            }
-    }
-
-
-    fun loadAllMoodEntries() {
+    override fun loadAllMoodData() {
         firestore.collection("mood")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
@@ -120,7 +73,55 @@ class FirestoreRepo @Inject constructor() {
     }
 
 
-    fun deleteMood(entry: MoodEntry) {
+    fun signIn() {
+        if (isAuthorized.value || isAuthorizing) {
+            //Already authorized
+            return
+        }
+
+        isAuthorizing = true
+        Firebase.auth
+            .signInAnonymously()
+            .addOnSuccessListener {
+                mIsAuthorized.value = true
+                loadAllMoodData()
+            }
+            .addOnFailureListener { exception ->
+                exception.printStackTrace()
+                mIsAuthorized.value = false
+            }.addOnCompleteListener {
+                isAuthorizing = false
+            }
+    }
+
+
+    override fun insertOrUpdateMood(entry: MoodEntry) {
+        if (!isAuthorized.value) {
+            return
+        }
+
+        insertOrUpdateMood(entry = entry.toPlain())
+    }
+
+
+    override fun insertOrUpdateMood(entry: PlainMoodEntry) {
+        if (!isAuthorized.value) {
+            return
+        }
+
+        firestore.collection("mood")
+            .document("${entry.timestamp}")
+            .set(entry.toFirestore())
+            .addOnSuccessListener {
+                loadAllMoodData()
+            }
+            .addOnFailureListener { exception ->
+                exception.printStackTrace()
+            }
+    }
+
+
+    override fun deleteMood(entry: MoodEntry) {
         if (!isAuthorized.value) {
             return
         }

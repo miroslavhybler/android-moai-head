@@ -1,8 +1,9 @@
 plugins {
     alias(notation = libs.plugins.android.library)
     alias(notation = libs.plugins.kotlin.android)
-
     alias(notation = libs.plugins.kotlin.serialization)
+    alias(notation = libs.plugins.ksp)
+
 }
 
 android {
@@ -42,6 +43,18 @@ android {
 dependencies {
 
     implementation(dependencyNotation = libs.serialization.json)
+    implementation(dependencyNotation = libs.androidx.annotation.jvm)
+
+    /** Hilt DI for dependency injection (https://developer.android.com/training/dependency-injection/hilt-android) */
+    implementation(dependencyNotation = libs.hilt.android)
+
+    /** Mockup data generation (https://github.com/miroslavhybler/ksp-mockup-processor) */
+    ksp(dependencyNotation = libs.mockup.annotations)
+    ksp(dependencyNotation = libs.mockup.processor)
+    implementation(dependencyNotation = libs.mockup.annotations)
+    //For mockup, providers are implementing PreviewParameterProvider
+    debugImplementation(dependencyNotation = libs.androidx.ui.tooling)
+    implementation(dependencyNotation = libs.androidx.ui.tooling.preview)
 
     testImplementation(dependencyNotation = libs.junit)
     androidTestImplementation(dependencyNotation = libs.androidx.junit)
