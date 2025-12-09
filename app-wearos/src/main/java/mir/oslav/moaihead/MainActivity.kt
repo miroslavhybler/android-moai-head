@@ -30,9 +30,11 @@ import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import dagger.hilt.android.AndroidEntryPoint
+import mir.oslav.moaihead.data.MetadataRepo
 import moaihead.data.model.Mood
 import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.moodColorScheme
+import javax.inject.Inject
 
 
 /**
@@ -42,6 +44,8 @@ import moaihead.ui.moodColorScheme
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var metadataRepo: MetadataRepo
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

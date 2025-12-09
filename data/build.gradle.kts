@@ -47,6 +47,7 @@ dependencies {
 
     /** Hilt DI for dependency injection (https://developer.android.com/training/dependency-injection/hilt-android) */
     implementation(dependencyNotation = libs.hilt.android)
+    implementation(libs.play.services.tasks)
 
     /** Mockup data generation (https://github.com/miroslavhybler/ksp-mockup-processor) */
     ksp(dependencyNotation = libs.mockup.annotations)

@@ -1,7 +1,3 @@
-Here you go — a clean, copy-paste-ready **Firebase & Firestore README** section in Markdown.
-
----
-
 # Firebase & Firestore Setup Guide
 
 This document explains how to set up Firebase for this project, configure Firestore, and understand the data structure and security considerations.
@@ -105,7 +101,6 @@ This ensures:
 * Anyone who obtains it could write to your database (depending on your rules).
 
 Add to `.gitignore`:
-
 ```
 google-services.json
 *.keystore
@@ -128,18 +123,3 @@ google-services.json
 * Keep `google-services.json` private.
 * Never allow full public rules.
 * Periodically review rules in Firebase Console.
-
----
-
-## 6. Summary
-
-To use the app with Firestore:
-
-1. Create a Firebase project.
-2. Add Android app + download `google-services.json`.
-3. Enable Anonymous Auth.
-4. Enable Firestore.
-5. Create the `mood` collection using the structure above.
-6. Add security rules to restrict access.
-
-You now have a fully functional backend for mood tracking.

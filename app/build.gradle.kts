@@ -119,7 +119,7 @@ gradle.startParameter.taskNames.find { it.contains("firestore", ignoreCase = tru
     val googleServicesFile = file("google-services.json")
     if (!googleServicesFile.exists()) {
         throw GradleException(
-            "google-services.json not found in ${project.projectDir}/src/firestore/. " +
+            "google-services.json not found in ${project.projectDir}. " +
                     "For the 'firestore' flavor, this file is required. " +
                     "Please follow the setup instructions in the README to configure your own Firebase project and place the file in the correct location ('app/google-services.json')."
         )

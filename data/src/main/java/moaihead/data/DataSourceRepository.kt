@@ -23,7 +23,6 @@ public interface DataSourceRepository {
     abstract suspend fun loadAllMoodData(): Unit
 
 
-
     abstract suspend fun insertOrUpdateMood(entry: MoodEntry): Unit
 
 
@@ -32,5 +31,6 @@ public interface DataSourceRepository {
 
     abstract suspend fun deleteMood(entry: MoodEntry): Unit
 
+    abstract suspend fun getTotalAverageMood(): Float
 
 }

@@ -18,6 +18,7 @@ import moaihead.data.model.EntrySource
 import moaihead.data.model.Mood
 import moaihead.data.model.MoodEntry
 import moaihead.data.model.PlainMoodEntry
+import moaihead.data.utils.awaitResult
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,6 +30,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class FirestoreRepo @Inject constructor() : DataSourceRepository {
+
+    companion object {
+        const val MOOD_COLLECTION: String = "mood"
+    }
 
 
     private val firestore: FirebaseFirestore = Firebase.firestore
@@ -60,7 +65,7 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
 
 
     override suspend fun loadAllMoodData() {
-        firestore.collection("mood")
+        firestore.collection(MOOD_COLLECTION)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { collection ->
@@ -89,6 +94,11 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
     }
 
 
+    override suspend fun getTotalAverageMood(): Float {
+        return mAllData.value.map(transform = { it.mood.value }).average().toFloat()
+    }
+
+
     suspend fun signIn() {
         if (isAuthorized.value || isAuthorizing) {
             //Already authorized
@@ -110,6 +120,41 @@ class FirestoreRepo @Inject constructor() : DataSourceRepository {
             }.addOnCompleteListener {
                 isAuthorizing = false
             }
+    }
+
+
+    suspend fun syncMoodEntries(
+        entries: List<MoodEntry>,
+    ): Result<Unit> {
+        if (!isAuthorized.value || entries.isEmpty()) {
+            return Result.success(value = Unit)
+        }
+
+        val batch = firestore.batch()
+        for (entry in entries) {
+            val docRef = firestore.collection(MOOD_COLLECTION)
+                .document("${entry.timestamp.toEpochMilli()}")
+            batch.set(docRef, entry.toPlain())
+        }
+
+        var fault: Exception? = null
+        batch.commit()
+            .addOnSuccessListener {
+                coroutineScope.launch {
+                    loadAllMoodData()
+                }
+            }
+            .addOnFailureListener { exception ->
+                exception.printStackTrace()
+                fault = exception
+            }
+            .awaitResult()
+
+        return if (fault != null) {
+            Result.failure(exception = fault)
+        } else {
+            Result.success(value = Unit)
+        }
     }
 
 

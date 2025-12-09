@@ -4,9 +4,14 @@ package moaihead.room
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import moaihead.data.DataSourceRepository
 import moaihead.data.model.MoodEntry
 import moaihead.data.model.PlainMoodEntry
@@ -27,6 +32,21 @@ public class LocalDatabaseRepo @Inject internal constructor(
 
     private val mMoodData: MutableStateFlow<List<MoodEntry>> = MutableStateFlow(value = emptyList())
     public override val moodData: StateFlow<List<MoodEntry>> = mMoodData.asStateFlow()
+
+    private val coroutineScope = CoroutineScope(
+        context = Dispatchers.IO
+            .plus(context = CoroutineExceptionHandler { _, throwable ->
+                throwable.printStackTrace()
+            })
+            .plus(context = CoroutineName(name = "LocalDatabaseRepo"))
+    )
+
+
+    init {
+        coroutineScope.launch {
+            loadAllMoodData()
+        }
+    }
 
 
     private val moodDao: MoodDao
@@ -51,12 +71,17 @@ public class LocalDatabaseRepo @Inject internal constructor(
     }
 
 
+    public override suspend fun getTotalAverageMood(): Float {
+        return moodDao.getAllTimeMoodAverage()
+    }
+
+
     public suspend fun insertOrUpdateMood(entry: MoodEntity) {
         moodDao.insert(item = entry)
     }
 
 
-    public suspend fun getAllNotUploaded(): List<MoodEntity> {
+    public suspend fun loadAllNotSynced(): List<MoodEntity> {
         return moodDao.getAllNonSynchronized()
     }
 }

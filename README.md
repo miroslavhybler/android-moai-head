@@ -10,7 +10,7 @@ Current state: **simple proof of concept** — log mood on WearOS → send to ph
 
 * Wear → Phone sync: **✅**
 * Firestore storage: **✅**
-* Edit mood entry: **❌**
+* Edit mood entry: **✅** (Just note, doens't make sense to edit mood or time)
 * Simple statistics: **❌**
 * Playful expressive UI: **❌**
 * Routine planning: **❌**
@@ -18,7 +18,7 @@ Current state: **simple proof of concept** — log mood on WearOS → send to ph
 * Routine notifications: **❌**
 * Periodic mood reminders: **❌**
 * Baseline Profiles: **❌**
-* On-device mode (no Firestore): **❌**
+* On-device mode (no Firestore): **✅** (use room flavor for app module)
 * Quotes/favorites: **❌**
 * Developer docs: **❌**
 

@@ -2,7 +2,6 @@ package mir.oslav.moaihead
 
 import android.util.Log
 import androidx.compose.ui.util.fastForEach
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Node
@@ -14,13 +13,14 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.json.Json
+import mir.oslav.moaihead.data.MetadataRepo
 import moaihead.data.Endpoints
 import moaihead.data.model.PlainMoodEntry
+import moaihead.data.utils.awaitResult
 import moaihead.room.LocalDatabaseRepo
 import moaihead.room.MoodEntity
 import javax.inject.Inject
-import kotlin.coroutines.resume
 
 
 /**
@@ -40,16 +40,27 @@ class WearOsListenerService : WearableListenerService() {
 
 
     @Inject
-    lateinit var repo: LocalDatabaseRepo
+    lateinit var databaseRepo: LocalDatabaseRepo
 
+    @Inject
+    lateinit var metadataRepo: MetadataRepo
 
     override fun onMessageReceived(event: MessageEvent) {
         super.onMessageReceived(event)
+
+        Log.d("mirek", "wear - event: ${event.path}")
+
         when (event.path) {
-            Endpoints.FromPhoneToWear.REQUEST_SYNC -> {
+            Endpoints.FromPhoneToWear.REQUEST_WEAR_SYNC -> {
                 coroutineScope.launch {
-                    syncData()
+                    sendDataFromWearToPhone()
                 }
+            }
+
+            Endpoints.FromPhoneToWear.REQUEST_METADATA_SYNC_RESPONSE -> {
+                metadataRepo.saveMetadata(
+                    metadata = Json.decodeFromString(string = String(bytes = event.data))
+                )
             }
 
             else -> {
@@ -59,8 +70,8 @@ class WearOsListenerService : WearableListenerService() {
     }
 
 
-    private suspend fun syncData() {
-        val list = repo.getAllNotUploaded()
+    private suspend fun sendDataFromWearToPhone() {
+        val list = databaseRepo.loadAllNotSynced()
         val nodeClient = Wearable.getNodeClient(this)
         val msgClient = Wearable.getMessageClient(this)
 
@@ -89,25 +100,7 @@ class WearOsListenerService : WearableListenerService() {
         if (result != null) {
             //Sync successful
             val updatedEntity = entity.copy(isSynchronized = true)
-            repo.insertOrUpdateMood(entry = updatedEntity)
+            databaseRepo.insertOrUpdateMood(entry = updatedEntity)
         }
     }
-
-
-    suspend fun <T> Task<T>.awaitResult(): Result<T> =
-        suspendCancellableCoroutine { cont ->
-            addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    cont.resume(value = Result.success(value = task.result))
-                } else {
-                    cont.resume(
-                        value = Result.failure(
-                            exception = task.exception
-                                ?: Exception("Task failed")
-                        )
-                    )
-                }
-            }
-        }
-
 }

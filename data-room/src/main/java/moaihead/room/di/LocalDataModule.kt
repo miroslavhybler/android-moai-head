@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package moaihead.room.di
 
 import dagger.Binds

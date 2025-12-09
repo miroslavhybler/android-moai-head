@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import mir.oslav.moaihead.utils.tryGetConnectedPhone
 import moaihead.data.DataSourceRepository
 import moaihead.data.Endpoints
 import moaihead.data.model.MoodEntry
@@ -23,13 +24,11 @@ class NewEntryViewModel @Inject constructor(
     val repo: DataSourceRepository,
 ) : ViewModel() {
 
-
     fun insert(
         moodEntry: MoodEntry,
         activity: Activity,
         onFinish: () -> Unit,
     ) {
-
         trySendToPhone(
             entry = moodEntry.toPlain(),
             activity = activity,
@@ -61,42 +60,29 @@ class NewEntryViewModel @Inject constructor(
     }
 
 
-
     private fun trySendToPhone(
         entry: PlainMoodEntry,
         activity: Activity,
         callback: (Boolean?) -> Unit,
     ) {
-        val nodeClient = Wearable.getNodeClient(activity)
         val msgClient = Wearable.getMessageClient(activity)
 
-        // Find connected phone
-        nodeClient.connectedNodes.addOnSuccessListener { nodes ->
-            if (nodes.isEmpty()) {
-                callback(null)
-                Toast.makeText(
-                    activity,
-                    "No phone connected",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                return@addOnSuccessListener
-            }
-
-            val phoneNode = nodes.firstOrNull() ?: return@addOnSuccessListener
-            msgClient.sendMessage(
-                phoneNode.id,
-                Endpoints.FromWearToPhone.INSERT_MOOD_ENTRY,
-                PlainMoodEntry.Serializer.encode(entry = entry)
-            ).addOnSuccessListener {
-                callback(true)
-            }.addOnFailureListener { exception ->
-                exception.printStackTrace()
+        viewModelScope.launch {
+            val phoneNode = activity.tryGetConnectedPhone()
+            if (phoneNode != null) {
+                msgClient.sendMessage(
+                    phoneNode.id,
+                    Endpoints.FromWearToPhone.INSERT_MOOD_ENTRY,
+                    PlainMoodEntry.Serializer.encode(entry = entry)
+                ).addOnSuccessListener {
+                    callback(true)
+                }.addOnFailureListener { exception ->
+                    exception.printStackTrace()
+                    callback(false)
+                }
+            } else {
                 callback(false)
             }
-
-        }.addOnFailureListener { exception ->
-            exception.printStackTrace()
-            callback(false)
         }
     }
 }

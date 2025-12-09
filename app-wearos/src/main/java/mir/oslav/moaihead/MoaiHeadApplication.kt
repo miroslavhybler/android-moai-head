@@ -1,7 +1,9 @@
 package mir.oslav.moaihead
 
 import android.app.Application
+import androidx.wear.tiles.TileService
 import dagger.hilt.android.HiltAndroidApp
+import mir.oslav.moaihead.tile.MoodTileService
 
 
 /**
@@ -14,5 +16,8 @@ class MoaiHeadApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        //Just for debug
+        TileService.getUpdater(this)
+            .requestUpdate(MoodTileService::class.java)
     }
 }

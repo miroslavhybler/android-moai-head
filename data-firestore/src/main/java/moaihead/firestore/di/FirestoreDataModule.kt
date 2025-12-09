@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package moaihead.firestore.di
 
 import dagger.Binds

@@ -43,6 +43,7 @@ android {
 dependencies {
 
     implementation(dependencyNotation =project(":data"))
+    implementation(dependencyNotation = project(":data-room"))
 
     implementation(dependencyNotation =libs.androidx.core.ktx)
 

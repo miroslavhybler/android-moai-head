@@ -1,9 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
 
 package mir.oslav.moaihead.ui.sourcedata
 
 import android.widget.Toast
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +22,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,37 +39,63 @@ import mir.oslav.moaihead.ui.Route
 import moaihead.data.Endpoints
 import moaihead.data.model.MoodEntry
 import moaihead.data.model.PlainMoodEntry
+import moaihead.data.model.SyncState
 
 
 /**
  * @author Miroslav Hýbler <br>
  * created on 24.11.2025
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SourceDataScreen(
     onNavigate: (Route) -> Unit,
     viewModel: SourceDataViewModel = viewModel(),
 ) {
-    val activity = LocalActivity.current
+    val context = LocalContext.current
     val data = viewModel.repo.moodData.collectAsState()
+    val localToRemoteSyncState by viewModel.syncState.collectAsState()
+
+
+    LaunchedEffect(key1 = localToRemoteSyncState) {
+        if (localToRemoteSyncState is SyncState.Unknown) {
+            return@LaunchedEffect
+        }
+
+        Toast.makeText(
+            context,
+            when (localToRemoteSyncState) {
+                is SyncState.SyncFinished ->
+                    if ((localToRemoteSyncState as SyncState.SyncFinished).isSuccess) {
+                        "Sync successful"
+                    } else {
+                        "Sync failed"
+                    }
+
+                is SyncState.SyncRunning -> "Sync into Firestore running"
+                else -> ""
+            },
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
 
     SourceDataScreenImpl(
         data = data.value,
         onNavigate = onNavigate,
         onRequestWearOSSync = {
-            if (activity != null) {
-                Wearable.getNodeClient(activity).connectedNodes
-                    .addOnSuccessListener { nodes ->
+            Wearable.getNodeClient(context).connectedNodes
+                .addOnSuccessListener { nodes ->
                     nodes.firstOrNull()?.let { wearNode ->
-                        val messageClient = Wearable.getMessageClient(activity)
+                        val messageClient = Wearable.getMessageClient(context)
 
                         messageClient.sendMessage(
                             wearNode.id,
-                            Endpoints.FromPhoneToWear.REQUEST_SYNC,
+                            Endpoints.FromPhoneToWear.REQUEST_WEAR_SYNC,
                             byteArrayOf()
-                        ).addOnSuccessListener {
+                        ).addOnSuccessListener { a ->
                             Toast.makeText(
-                                activity,
+                                context,
                                 "Synchronizing data",
                                 Toast.LENGTH_SHORT
                             ).show()
@@ -76,32 +103,36 @@ fun SourceDataScreen(
                             .addOnFailureListener { exception ->
                                 exception.printStackTrace()
                                 Toast.makeText(
-                                    activity,
+                                    context,
                                     "Request failed",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
                     }
                 }
-                    .addOnFailureListener { exception ->
-                        exception.printStackTrace()
-                        Toast.makeText(
-                            activity,
-                            "Unable to get nodes",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-            }
-        }
+                .addOnFailureListener { exception ->
+                    exception.printStackTrace()
+                    Toast.makeText(
+                        context,
+                        "Unable to get nodes",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+        },
+        syncState = localToRemoteSyncState,
+        onLocalToRemoteSyncRequested = viewModel::requestLocalToRemoteSync,
     )
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SourceDataScreenImpl(
     data: List<MoodEntry>,
     onNavigate: (Route) -> Unit,
     onRequestWearOSSync: () -> Unit,
+    syncState: SyncState,
+    onLocalToRemoteSyncRequested: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -113,6 +144,16 @@ private fun SourceDataScreenImpl(
                     )
                 },
                 actions = {
+
+                    IconButton(onClick = onLocalToRemoteSyncRequested) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_sync),
+                            contentDescription = null,
+                        )
+                    }
+
+
+
                     IconButton(onClick = onRequestWearOSSync) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_wear),
@@ -131,25 +172,25 @@ private fun SourceDataScreenImpl(
                 items(
                     items = data,
                     key = { item -> item.timestamp.epochSecond }
-                ) {
+                ) { item ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable(onClick = { onNavigate(Route.MoodEntry(entry = it)) })
+                            .clickable(onClick = { onNavigate(Route.MoodEntry(entry = item)) })
                             .padding(vertical = 4.dp, horizontal = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(text = it.mood.emoji)
+                        Text(text = item.mood.emoji)
 
                         Text(
-                            text = it.mood.name,
+                            text = item.mood.name,
                             modifier = Modifier.weight(weight = 1f),
                             style = MaterialTheme.typography.titleMedium,
                         )
 
                         Text(
-                            text = it.timestamp.toString(),
+                            text = item.timestamp.toString(),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -187,5 +228,8 @@ private fun SourceDataScreenPreview() {
         data = Mockup.plainMoodEntry.list.map(transform = PlainMoodEntry::toMoodEntry),
         onNavigate = { _ -> },
         onRequestWearOSSync = {},
-    )
+        syncState = SyncState.Unknown,
+        onLocalToRemoteSyncRequested = {},
+
+        )
 }

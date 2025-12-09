@@ -2,6 +2,7 @@ plugins {
     alias(notation = libs.plugins.android.application)
     alias(notation = libs.plugins.kotlin.android)
     alias(notation = libs.plugins.kotlin.compose)
+    alias(notation = libs.plugins.kotlin.serialization)
 
     alias(notation = libs.plugins.ksp)
     alias(notation = libs.plugins.hilt)
@@ -36,14 +37,15 @@ android {
     useLibrary("wear-sdk")
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
     kotlin {
-        jvmToolchain(jdkVersion = 11)
+        jvmToolchain(jdkVersion = 17)
     }
     buildFeatures {
         compose = true
@@ -79,11 +81,13 @@ dependencies {
     debugImplementation(dependencyNotation = libs.wear.tiles.tooling.preview)
     implementation(dependencyNotation = libs.horologist.compose)
     implementation(dependencyNotation = libs.horologist.tiles)
-
     implementation(dependencyNotation = libs.play.services.wearable)
     implementation(dependencyNotation = libs.wear.protolayout)
     implementation(dependencyNotation = libs.wear.protolayout.expression)
     implementation(dependencyNotation = libs.wear.protolayout.material3)
+
+    implementation(dependencyNotation = libs.guava)
+    implementation(dependencyNotation = libs.serialization.json)
 
     /** Hilt DI */
     implementation(dependencyNotation = libs.hilt.android)

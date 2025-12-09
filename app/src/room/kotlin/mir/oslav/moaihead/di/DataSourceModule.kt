@@ -2,24 +2,31 @@ package mir.oslav.moaihead.di
 
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import moaihead.data.DataSourceRepository
+import moaihead.data.LocalToRemoteSyncer
 import moaihead.data.di.LocalSource
-import javax.inject.Singleton
+import moaihead.data.model.SyncState
+import javax.inject.Inject
 
+class NoOpLocalToRemoteSyncer @Inject constructor() : LocalToRemoteSyncer {
+    override val syncState: Flow<SyncState> = flowOf(SyncState.Unknown)
+    override fun requestSync() = Unit
+}
 
-/**
- * @author Miroslav Hýbler <br>
- * created on 04.12.2025
- */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataSourceModule {
 
-    // When the app asks for a 'DataSource', provide the one
-    // that is labeled with @LocalSource.
     @Binds
-    @Singleton
-    abstract fun bindDataSource(@LocalSource dataSourceRepository: DataSourceRepository): DataSourceRepository
+    abstract fun bindSyncer(impl: NoOpLocalToRemoteSyncer): LocalToRemoteSyncer
+
+    companion object {
+        @Provides
+        fun provideDataSourceRepository(@LocalSource localRepository: DataSourceRepository): DataSourceRepository = localRepository
+    }
 }
