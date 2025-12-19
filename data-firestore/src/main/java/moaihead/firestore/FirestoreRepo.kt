@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.model.EntrySource
 import moaihead.data.model.Mood
 import moaihead.data.model.MoodEntry
@@ -29,7 +29,7 @@ import javax.inject.Singleton
  * created on 18.11.2025
  */
 @Singleton
-class FirestoreRepo @Inject constructor() : DataSourceRepository {
+class FirestoreRepo @Inject constructor() : BaseDataSourceRepository() {
 
     companion object {
         const val MOOD_COLLECTION: String = "mood"

@@ -12,9 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.LocalToRemoteSyncer
-import moaihead.data.di.LocalSource
 import moaihead.data.di.RemoteSource
 import moaihead.data.model.SyncState
 import moaihead.firestore.LocalToRemoteSyncRepo
@@ -54,8 +53,8 @@ abstract class DataSourceModule {
     companion object {
         @Provides
         fun provideDataSourceRepository(
-            @RemoteSource repo: DataSourceRepository,
-        ): DataSourceRepository {
+            @RemoteSource repo: BaseDataSourceRepository,
+        ): BaseDataSourceRepository {
             return repo
         }
     }

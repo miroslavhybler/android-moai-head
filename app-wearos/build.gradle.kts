@@ -77,14 +77,17 @@ dependencies {
 
     /** WearOS Tiles (https://developer.android.com/codelabs/wear-tiles) */
     implementation(dependencyNotation = libs.wear.tiles)
-    debugImplementation(dependencyNotation = libs.wear.tiles.tooling)
-    debugImplementation(dependencyNotation = libs.wear.tiles.tooling.preview)
+    implementation(dependencyNotation = libs.wear.tiles.tooling)
+    implementation(dependencyNotation = libs.wear.tiles.tooling.preview)
     implementation(dependencyNotation = libs.horologist.compose)
     implementation(dependencyNotation = libs.horologist.tiles)
     implementation(dependencyNotation = libs.play.services.wearable)
     implementation(dependencyNotation = libs.wear.protolayout)
     implementation(dependencyNotation = libs.wear.protolayout.expression)
     implementation(dependencyNotation = libs.wear.protolayout.material3)
+
+    implementation(dependencyNotation = libs.androidx.compose.ui.tooling)
+    implementation(dependencyNotation = libs.androidx.compose.ui.test.manifest)
 
     implementation(dependencyNotation = libs.guava)
     implementation(dependencyNotation = libs.serialization.json)
@@ -98,6 +101,5 @@ dependencies {
 
     androidTestImplementation(dependencyNotation = platform(libs.androidx.compose.bom))
     androidTestImplementation(dependencyNotation = libs.androidx.compose.ui.test.junit4)
-    debugImplementation(dependencyNotation = libs.androidx.compose.ui.tooling)
-    debugImplementation(dependencyNotation = libs.androidx.compose.ui.test.manifest)
+
 }

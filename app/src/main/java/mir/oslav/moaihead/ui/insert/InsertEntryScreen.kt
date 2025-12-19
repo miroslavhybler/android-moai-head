@@ -8,33 +8,45 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mir.oslav.moaihead.R
 import mir.oslav.moaihead.compose.PreviewUI
@@ -51,12 +63,17 @@ fun InsertEntryScreen(
     onBack: () -> Unit,
     viewModel: InsertViewModel = viewModel(),
 ) {
+
+    val notesByMood by viewModel.notesByMood.collectAsState()
+
     InsertEntryScreenImpl(
+        onMoodSelected = viewModel::loadNotesForMood,
         onInsert = { mood, note ->
             viewModel.insert(mood = mood, note = note)
             onBack()
         },
         onBack = onBack,
+        notesByMood = notesByMood,
     )
 }
 
@@ -64,9 +81,12 @@ fun InsertEntryScreen(
 @Composable
 private fun InsertEntryScreenImpl(
     onBack: () -> Unit,
+    onMoodSelected: (mood: Mood) -> Unit,
     onInsert: (mood: Mood, note: String?) -> Unit,
+    notesByMood: List<Pair<String, Int>>,
 ) {
-    var selectedMood: Mood? by remember { mutableStateOf(value = null) }
+    var selectedMood: Mood? by rememberSaveable { mutableStateOf(value = null) }
+    var note: String? by rememberSaveable { mutableStateOf(value = null) }
 
     BackHandler(enabled = selectedMood != null) {
         selectedMood = null
@@ -95,19 +115,25 @@ private fun InsertEntryScreenImpl(
             )
         },
         content = { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .verticalScroll(state = rememberScrollState())
-                    .padding(paddingValues = innerPadding),
+            LazyColumn(
+                modifier = Modifier,
                 verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                contentPadding = innerPadding,
             ) {
-                Mood.entries.forEach { mood ->
+                items(
+                    items = if (selectedMood != null) listOf(selectedMood!!) else Mood.entries,
+                    key = { mood -> mood.value },
+                ) { mood ->
                     Row(
                         modifier = Modifier
+                            .animateItem()
                             .padding(horizontal = 20.dp)
                             .fillMaxWidth()
                             .clip(shape = MaterialTheme.shapes.medium)
-                            .clickable(onClick = { selectedMood = mood })
+                            .clickable(onClick = {
+                                selectedMood = mood
+                                onMoodSelected(mood)
+                            })
                             .background(
                                 color = if (selectedMood == mood)
                                     MaterialTheme.colorScheme.primaryContainer
@@ -127,6 +153,52 @@ private fun InsertEntryScreenImpl(
                             Text(text = mood.name)
                             Text(text = mood.description)
                         }
+
+                    }
+                }
+
+                if (selectedMood != null) {
+                    item(key = Int.MIN_VALUE) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(space = 12.dp),
+                        ) {
+                            OutlinedTextField(
+                                modifier = Modifier.fillMaxWidth(),
+                                value = note ?: "",
+                                onValueChange = { note = it },
+                                label = { Text(text = "Note") },
+                                maxLines = 5,
+                                minLines = 1,
+                                textStyle = MaterialTheme.typography.bodyMedium,
+                                shape = MaterialTheme.shapes.medium,
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Done,
+                                    autoCorrectEnabled = true,
+                                    keyboardType = KeyboardType.Text,
+                                    capitalization = KeyboardCapitalization.Sentences,
+                                )
+                            )
+
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+                            ) {
+                                notesByMood.fastForEach { usedNote ->
+                                    FilterChip(
+                                        selected = note == usedNote.first,
+                                        onClick = {
+                                            note = usedNote.first
+                                        },
+                                        label = {
+                                            Text(text = "${usedNote.first} (${usedNote.second})")
+                                        },
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -145,7 +217,7 @@ private fun InsertEntryScreenImpl(
                         .height(height = 56.dp),
                     onClick = {
                         if (selectedMood != null) {
-                            onInsert(selectedMood!!, null)
+                            onInsert(selectedMood!!, note)
                         }
                     },
                 ) {
@@ -164,6 +236,8 @@ private fun InsertEntryScreenPreview() {
         InsertEntryScreenImpl(
             onBack = {},
             onInsert = { _, _ -> },
+            onMoodSelected = { _ -> },
+            notesByMood = emptyList(),
         )
     }
 }

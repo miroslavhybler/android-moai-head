@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.model.MoodEntry
 import moaihead.data.model.PlainMoodEntry
 import javax.inject.Inject
@@ -26,7 +26,7 @@ import javax.inject.Singleton
 @Singleton
 public class LocalDatabaseRepo @Inject internal constructor(
     @ApplicationContext context: Context,
-) : DataSourceRepository {
+) : BaseDataSourceRepository() {
 
     private val localDatabase: LocalDatabase = LocalDatabase.create(context = context)
 

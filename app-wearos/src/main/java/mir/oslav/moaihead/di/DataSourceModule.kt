@@ -6,7 +6,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.di.LocalSource
 import javax.inject.Singleton
 
@@ -25,6 +25,6 @@ abstract class DataSourceModule {
     @Binds
     @Singleton
     abstract fun bindDataSource(
-        @LocalSource dataSourceRepository: DataSourceRepository,
-    ): DataSourceRepository
+        @LocalSource baseDataSourceRepository: BaseDataSourceRepository,
+    ): BaseDataSourceRepository
 }

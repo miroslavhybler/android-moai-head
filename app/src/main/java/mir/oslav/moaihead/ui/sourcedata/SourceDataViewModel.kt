@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.LocalToRemoteSyncer
 import moaihead.data.model.SyncState
 import javax.inject.Inject
@@ -17,7 +17,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SourceDataViewModel @Inject constructor(
-    val repo: DataSourceRepository,
+    val repo: BaseDataSourceRepository,
     private val syncer: LocalToRemoteSyncer,
 ) : ViewModel() {
 

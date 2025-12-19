@@ -11,7 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import moaihead.data.DataSourceRepository
+import mir.oslav.moaihead.utils.tryGetConnectedWearOS
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.Endpoints
 import moaihead.data.model.AppMetadata
 import moaihead.data.model.Mood
@@ -29,7 +30,7 @@ import kotlin.math.roundToInt
 class PhoneWearOsListenerService : WearableListenerService() {
 
     @Inject
-    lateinit var repo: DataSourceRepository
+    lateinit var repo: BaseDataSourceRepository
 
     private val coroutineScope = CoroutineScope(
         context = Dispatchers.IO
@@ -47,9 +48,6 @@ class PhoneWearOsListenerService : WearableListenerService() {
     override fun onMessageReceived(event: MessageEvent) {
         super.onMessageReceived(event)
 
-
-        Log.d("mirek", "phone - event: ${event.path}")
-
         when (event.path) {
             Endpoints.FromWearToPhone.INSERT_MOOD_ENTRY -> {
                 coroutineScope.launch {
@@ -60,26 +58,20 @@ class PhoneWearOsListenerService : WearableListenerService() {
 
             Endpoints.FromWearToPhone.REQUEST_METADATA_SYNC -> {
                 coroutineScope.launch {
-                    val average = repo.getTotalAverageMood()
-                    val averageInt = average.roundToInt()
-                    val mood = Mood.entries.find(predicate = { mood -> mood.value == averageInt })
+                    onMetadataSyncRequested()
+                }
+            }
 
-                    val metadata = AppMetadata(
-                        totalAverageMoodValue = average,
-                        totalAverageMood = mood,
-                    )
-
+            Endpoints.FromWearToPhone.REQUEST_MOOD_AND_NOTES -> {
+                coroutineScope.launch {
+                    val data = repo.groupModeNotes()
                     val messageClient = Wearable.getMessageClient(this@PhoneWearOsListenerService)
-                    val wearOsNode = Wearable.getNodeClient(this@PhoneWearOsListenerService)
-                        .connectedNodes.awaitResult()
-                        .getOrNull()
-                        ?.firstOrNull()
-
+                    val wearOsNode = tryGetConnectedWearOS()
                     if (wearOsNode != null) {
                         messageClient.sendMessage(
                             wearOsNode.id,
-                            Endpoints.FromPhoneToWear.REQUEST_METADATA_SYNC_RESPONSE,
-                            Json.encodeToString(value = metadata).toByteArray(),
+                            Endpoints.FromPhoneToWear.REQUEST_MOOD_AND_NOTES_RESPONSE,
+                            Json.encodeToString(value = data).toByteArray(),
                         ).awaitResult()
                     }
                 }
@@ -89,6 +81,29 @@ class PhoneWearOsListenerService : WearableListenerService() {
                 Log.e("WearOsListenerService", "(Phone) Unknown path: ${event.path}")
             }
         }
+    }
 
+
+
+    private suspend fun onMetadataSyncRequested() {
+        val average = repo.getTotalAverageMood()
+        val averageInt = average.roundToInt()
+        val mood = Mood.entries.find(predicate = { mood -> mood.value == averageInt })
+
+        val metadata = AppMetadata(
+            totalAverageMoodValue = average,
+            totalAverageMood = mood,
+        )
+
+        val messageClient = Wearable.getMessageClient(this@PhoneWearOsListenerService)
+        val wearOsNode = tryGetConnectedWearOS()
+
+        if (wearOsNode != null) {
+            messageClient.sendMessage(
+                wearOsNode.id,
+                Endpoints.FromPhoneToWear.REQUEST_METADATA_SYNC_RESPONSE,
+                Json.encodeToString(value = metadata).toByteArray(),
+            ).awaitResult()
+        }
     }
 }

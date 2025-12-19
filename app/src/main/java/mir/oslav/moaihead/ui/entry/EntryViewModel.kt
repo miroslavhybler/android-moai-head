@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.model.MoodEntry
 import javax.inject.Inject
 
@@ -15,7 +15,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class EntryViewModel @Inject constructor(
-    private val firestoreRepo: DataSourceRepository,
+    private val firestoreRepo: BaseDataSourceRepository,
 ) : ViewModel() {
 
 

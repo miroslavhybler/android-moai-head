@@ -5,24 +5,36 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
-import androidx.wear.compose.material3.Button
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.OutlinedButton
+import androidx.wear.compose.material3.Picker
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.rememberPickerState
 import mir.oslav.moaihead.compose.PreviewWearOS
 import moaihead.data.model.EntrySource
 import moaihead.data.model.Mood
@@ -39,21 +51,27 @@ import java.time.Instant
 fun NewEntryScreen(
     onBack: () -> Unit,
     mood: Mood,
-    newEntryViewModel: NewEntryViewModel = hiltViewModel(),
+    viewModel: NewEntryViewModel = hiltViewModel(),
 ) {
 
     val activity = LocalActivity.current
+    val notesForMood by viewModel.notesByMood.collectAsState()
+
+
+    LaunchedEffect(key1 = mood) {
+        viewModel.loadNotesForMood(mood = mood)
+    }
 
     NewEntryScreenImpl(
-        onBack = onBack,
         mood = mood,
-        onSubmitMoodEntry = {
+        notesForMood = notesForMood,
+        onSubmitMoodEntry = { mood, note ->
             if (activity != null) {
-                newEntryViewModel.insert(
+                viewModel.insert(
                     moodEntry = MoodEntry(
                         mood = mood,
                         timestamp = Instant.ofEpochMilli(System.currentTimeMillis()),
-                        note = null,
+                        note = note,
                         source = EntrySource.UserInitiative,
                     ),
                     activity = activity,
@@ -66,77 +84,81 @@ fun NewEntryScreen(
 
 @Composable
 private fun NewEntryScreenImpl(
-    onBack: () -> Unit,
     mood: Mood,
-    onSubmitMoodEntry: (Mood) -> Unit,
+    notesForMood: List<Pair<String, Int>>,
+    onSubmitMoodEntry: (mood: Mood, note: String?) -> Unit,
 ) {
+    var note: String? by rememberSaveable { mutableStateOf(value = null) }
+    val scrollState = remember { TransformingLazyColumnState() }
 
     ScreenScaffold(
-        scrollState = remember {
-            TransformingLazyColumnState()
-        },
+        scrollState = scrollState,
         content = { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background)
-                    .padding(paddingValues = paddingValues)
+            TransformingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = scrollState,
+                contentPadding = paddingValues,
+                verticalArrangement = Arrangement.Top,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
-                ) {
+                item {
                     Text(
-                        text = mood.emoji,
-                        style = MaterialTheme.typography.displayLarge,
+                        text = mood.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                     )
-                    Column() {
+                }
+
+                item(
+                    key = Int.MIN_VALUE + 1,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+                    ) {
                         Text(
-                            text = mood.name,
-                            style = MaterialTheme.typography.titleSmall,
+                            text = mood.emoji,
+                            style = MaterialTheme.typography.displaySmall,
                         )
-                        Text(
-                            text = mood.description,
-                            style = MaterialTheme.typography.titleSmall,
-                        )
+                        Column() {
+
+                            Text(
+                                text = mood.description,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .align(alignment = Alignment.Center)
-                        .offset(y = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(
-                        space = 12.dp,
-                        alignment = Alignment.CenterVertically,
+                //TODO replace with picker in the future
+                items(
+                    items = notesForMood,
+                    key = { it.first },
+                ) { usedNote ->
+                    FilterChip(
+                        modifier = Modifier
+                            .animateItem(),
+                        selected = note == usedNote.first,
+                        onClick = {
+                            note = if (note != usedNote.first) usedNote.first else null
+                        },
+                        label = {
+                            Text(text = "${usedNote.first} (${usedNote.second})")
+                        },
+                        shape = MaterialTheme.shapes.large,
+                        contentPadding = PaddingValues(all = 10.dp)
                     )
-                ) {
-                    OutlinedButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(height = 32.dp),
-                        onClick = onBack,
-                    ) {
-                        Text(
-                            text = "Cancel",
-                        )
-                    }
-
-                    Button(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(height = 32.dp),
-                        onClick = { onSubmitMoodEntry(mood) },
-                    ) {
-                        Text(
-                            text = "Submit",
-                        )
-                    }
-
                 }
             }
         },
+        edgeButton = {
+            EdgeButton(
+                onClick = { onSubmitMoodEntry(mood, note) }) {
+                Text(
+                    text = "Submit",
+                )
+            }
+        }
     )
 }
 
@@ -146,9 +168,12 @@ private fun NewEntryScreenImpl(
 private fun NewEntryScreenPreview() {
     MoaiHeadTheme() {
         NewEntryScreenImpl(
-            onBack = {},
             mood = Mood.entries.first(),
-            onSubmitMoodEntry = {},
+            onSubmitMoodEntry = { _, _ -> },
+            notesForMood = listOf(
+                "Note 1" to 1,
+                "Note 2" to 2,
+            )
         )
     }
 }

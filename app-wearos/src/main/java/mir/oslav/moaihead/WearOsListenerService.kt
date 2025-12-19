@@ -47,9 +47,6 @@ class WearOsListenerService : WearableListenerService() {
 
     override fun onMessageReceived(event: MessageEvent) {
         super.onMessageReceived(event)
-
-        Log.d("mirek", "wear - event: ${event.path}")
-
         when (event.path) {
             Endpoints.FromPhoneToWear.REQUEST_WEAR_SYNC -> {
                 coroutineScope.launch {
@@ -60,6 +57,12 @@ class WearOsListenerService : WearableListenerService() {
             Endpoints.FromPhoneToWear.REQUEST_METADATA_SYNC_RESPONSE -> {
                 metadataRepo.saveMetadata(
                     metadata = Json.decodeFromString(string = String(bytes = event.data))
+                )
+            }
+
+            Endpoints.FromPhoneToWear.REQUEST_MOOD_AND_NOTES_RESPONSE -> {
+                metadataRepo.saveNotes(
+                    notes = Json.decodeFromString(string = String(bytes = event.data))
                 )
             }
 

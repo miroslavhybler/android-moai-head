@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.wear.tiles.TileService
 import dagger.hilt.android.HiltAndroidApp
 import mir.oslav.moaihead.tile.MoodTileService
+import mir.oslav.moaihead.utils.tryGetConnectedPhone
 
 
 /**

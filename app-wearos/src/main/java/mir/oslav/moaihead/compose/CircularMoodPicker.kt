@@ -309,8 +309,7 @@ fun CircularMoodPicker(
                             pointerX.snapTo(targetValue = dragOffset.x)
                             pointerY.snapTo(targetValue = dragOffset.y)
 
-                            //TODO include inner radius to enable "cancel"
-                            //TODO support both layout directions
+                            //TODO support both layout directions 
                             val index = getClosestItemByAngle(
                                 x = pointerX.value,
                                 y = pointerY.value,
@@ -329,8 +328,7 @@ fun CircularMoodPicker(
                                 innerRadius = canvasSize.width * 0.05f,
                             )
 
-                            tempPickedMood =
-                                if (index != -1 && progress > 0.1f) Mood.entries[index] else null
+                            tempPickedMood = if (index != -1 && progress > 0.3f) Mood.entries[index] else null
                             val newMood = tempPickedMood
 
                             visualState.update(

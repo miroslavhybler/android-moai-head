@@ -23,14 +23,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import mir.oslav.moaihead.data.MetadataRepo
+import mir.oslav.moaihead.utils.tryGetConnectedPhone
+import moaihead.data.Endpoints
 import moaihead.data.model.Mood
 import moaihead.ui.MoaiHeadTheme
 import moaihead.ui.moodColorScheme
@@ -53,8 +58,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setTheme(android.R.style.Theme_DeviceDefault)
         setContent {
-            MoaiHeadTheme {
+            MoaiHeadWearOsTheme {
                 MainNavHost()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        lifecycleScope.launch {
+            tryGetConnectedPhone()?.let { phoneNode ->
+                Wearable.getMessageClient(this@MainActivity)
+                    .sendMessage(
+                        phoneNode.id,
+                        Endpoints.FromWearToPhone.REQUEST_MOOD_AND_NOTES,
+                        byteArrayOf(),
+                    )
             }
         }
     }

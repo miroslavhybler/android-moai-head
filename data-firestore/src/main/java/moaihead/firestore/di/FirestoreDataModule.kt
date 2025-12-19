@@ -6,7 +6,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import moaihead.data.DataSourceRepository
+import moaihead.data.BaseDataSourceRepository
 import moaihead.data.di.RemoteSource
 import moaihead.firestore.FirestoreRepo
 import javax.inject.Singleton
@@ -22,5 +22,5 @@ abstract class FirestoreDataModule {
     @Binds
     @Singleton
     @RemoteSource
-    abstract fun bindRemoteDataSource(impl: FirestoreRepo): DataSourceRepository
+    abstract fun bindRemoteDataSource(impl: FirestoreRepo): BaseDataSourceRepository
 }

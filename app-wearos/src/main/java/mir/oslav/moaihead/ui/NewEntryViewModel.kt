@@ -6,12 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import mir.oslav.moaihead.data.MetadataRepo
 import mir.oslav.moaihead.utils.tryGetConnectedPhone
-import moaihead.data.DataSourceRepository
 import moaihead.data.Endpoints
+import moaihead.data.model.Mood
 import moaihead.data.model.MoodEntry
 import moaihead.data.model.PlainMoodEntry
+import moaihead.room.LocalDatabaseRepo
 import javax.inject.Inject
 
 
@@ -21,8 +26,23 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class NewEntryViewModel @Inject constructor(
-    val repo: DataSourceRepository,
+    val repo: LocalDatabaseRepo,
+    val metadataRepo: MetadataRepo,
 ) : ViewModel() {
+
+
+    private val mNotesByMood: MutableStateFlow<List<Pair<String, Int>>> =
+        MutableStateFlow(value = emptyList())
+    val notesByMood: StateFlow<List<Pair<String, Int>>> = mNotesByMood.asStateFlow()
+
+
+    fun loadNotesForMood(mood: Mood) {
+        viewModelScope.launch {
+            val list = metadataRepo.notesMetadata.value[mood] ?: emptyList()
+            mNotesByMood.value = list.sortedByDescending(selector = Pair<String, Int>::second)
+        }
+    }
+
 
     fun insert(
         moodEntry: MoodEntry,

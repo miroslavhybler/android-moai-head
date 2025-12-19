@@ -57,12 +57,12 @@ mood
 
 ### Fields
 
-| Field       | Type    | Description                                                    |
-|-------------|---------|----------------------------------------------------------------|
-| `mood`      | int     | Mood level 1–10                                                |
-| `timestamp` | long    | When the mood was recorded                                     |
-| `note`      | string? | Optional “cause” or note                                       |
-| `source`    | int     | TODO: Define enum values (e.g., user, scheduled, WearOS, etc.) |
+| Field       | Type    | Description                       |
+|-------------|---------|-----------------------------------|
+| `mood`      | int     | Mood value 1–10 by Mood Interface |
+| `timestamp` | long    | When the mood was recorded        |
+| `note`      | string? | Optional “cause” or note          |
+| `source`    | int     | Value by EntrySource Interface    |
 
 ---
 

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(notation = libs.plugins.ksp)
 }
 
 android {
@@ -53,6 +54,15 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.shapes)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+
+    /** Hilt DI for dependency injection (https://developer.android.com/training/dependency-injection/hilt-android) */
+    implementation(dependencyNotation = libs.hilt.android)
+    ksp(dependencyNotation = libs.hilt.android.compiler)
+    implementation(dependencyNotation = libs.hilt.common)
+    ksp(dependencyNotation = libs.hilt.compiler)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
