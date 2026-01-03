@@ -10,18 +10,23 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Keep
 data class AppMetadata constructor(
-    val totalAverageMoodValue: Float?,
-    val totalAverageMood: Mood?,
+    val mostFrequentMood: Mood?,
+    val volatility: Volatility?,
+    val volatilityValue: Float?,
 ) {
     companion object {
         val Default: AppMetadata = AppMetadata(
-            totalAverageMoodValue = null,
-            totalAverageMood = null,
+            mostFrequentMood = null,
+            volatility = null,
+            volatilityValue = null,
         )
     }
 
 
     val isEmpty: Boolean
-        get() = totalAverageMood == null && totalAverageMoodValue == null
+        get() = mostFrequentMood == null
+                && volatility == null
+                && volatilityValue == null
+
 
 }

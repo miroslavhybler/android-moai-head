@@ -54,9 +54,7 @@ dependencies {
 
     /** Hilt DI for dependency injection (https://developer.android.com/training/dependency-injection/hilt-android) */
     implementation(dependencyNotation = libs.hilt.android)
-    ksp(dependencyNotation = libs.hilt.android.compiler)
     implementation(dependencyNotation = libs.hilt.common)
-    ksp(dependencyNotation = libs.hilt.compiler)
 
 
     testImplementation(dependencyNotation = libs.junit)

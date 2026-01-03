@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MoaiHead</string>
+
+    <string name="text_volatility_low">Low</string>
+    <string name="text_volatility_medium">Medium</string>
+    <string name="text_volatility_high">High</string>
 </resources>

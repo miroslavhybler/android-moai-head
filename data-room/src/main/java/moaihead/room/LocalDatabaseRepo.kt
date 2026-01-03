@@ -52,6 +52,10 @@ public class LocalDatabaseRepo @Inject internal constructor(
     private val moodDao: MoodDao
         get() = localDatabase.moodDao()
 
+    override suspend fun getAllMoodEntries(): List<MoodEntry> {
+        return moodDao.getAll().map(transform = MoodEntity::toMoodEntry)
+    }
+
 
     public override suspend fun loadAllMoodData() {
         mMoodData.value = moodDao.getAll().map(transform = MoodEntity::toMoodEntry)
@@ -70,16 +74,9 @@ public class LocalDatabaseRepo @Inject internal constructor(
         moodDao.delete(item = MoodEntity.from(entry = entry))
     }
 
-
-    public override suspend fun getTotalAverageMood(): Float {
-        return moodDao.getAllTimeMoodAverage()
-    }
-
-
     public suspend fun insertOrUpdateMood(entry: MoodEntity) {
         moodDao.insert(item = entry)
     }
-
 
     public suspend fun loadAllNotSynced(): List<MoodEntity> {
         return moodDao.getAllNonSynchronized()

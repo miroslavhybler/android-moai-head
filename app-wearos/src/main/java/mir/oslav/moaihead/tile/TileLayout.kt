@@ -2,18 +2,14 @@ package mir.oslav.moaihead.tile
 
 import android.content.ComponentName
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.dp
 import androidx.wear.protolayout.ActionBuilders.launchAction
 import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders.DpProp
 import androidx.wear.protolayout.DimensionBuilders.dp
-import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.LayoutElementBuilders.Column
-import androidx.wear.protolayout.LayoutElementBuilders.Row
 import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.material3.Typography
 import androidx.wear.protolayout.material3.materialScope
@@ -21,6 +17,7 @@ import androidx.wear.protolayout.material3.primaryLayout
 import androidx.wear.protolayout.material3.text
 import androidx.wear.protolayout.material3.textEdgeButton
 import androidx.wear.protolayout.modifiers.clickable
+import androidx.wear.protolayout.types.LayoutColor
 import androidx.wear.protolayout.types.layoutString
 import androidx.wear.tiles.tooling.preview.Preview
 import androidx.wear.tiles.tooling.preview.TilePreviewData
@@ -30,6 +27,7 @@ import mir.oslav.moaihead.MainActivity
 import mir.oslav.moaihead.R
 import moaihead.data.model.AppMetadata
 import moaihead.data.model.Mood
+import moaihead.data.model.Volatility
 import moaihead.ui.getMoodColorScheme
 import java.util.Locale
 
@@ -45,9 +43,10 @@ fun tileLayout(
 ): LayoutElementBuilders.LayoutElement {
 
     val colors = getMoodColorScheme(
-        mood = metadata.totalAverageMood ?: Mood.NEUTRAL,
+        mood = metadata.mostFrequentMood ?: Mood.NEUTRAL,
         isDark = true,
     )
+    val contentColor = LayoutColor(staticArgb = colors.onPrimary.toArgb())
 
     return materialScope(
         context = context,
@@ -77,7 +76,11 @@ fun tileLayout(
                                         ColorBuilders.LinearGradient.Builder(
                                             ColorBuilders.ColorProp.Builder(colors.primary.toArgb())
                                                 .build(),
-                                            ColorBuilders.ColorProp.Builder(colors.container.toArgb())
+                                            ColorBuilders.ColorProp.Builder(
+                                                colors.primary.copy(
+                                                    alpha = 0.5f
+                                                ).toArgb()
+                                            )
                                                 .build(),
 
                                             ).build()
@@ -102,21 +105,24 @@ fun tileLayout(
                     .apply {
                         addContent(
                             text(
-                                text = "${metadata.totalAverageMood?.emoji} ${metadata.totalAverageMood?.name}".layoutString,
+                                text = "Most frequent".layoutString,
+                                typography = Typography.LABEL_SMALL,
+                                color = contentColor,
+                            )
+                        )
+                        addContent(
+                            text(
+                                text = "${metadata.mostFrequentMood?.emoji} ${metadata.mostFrequentMood?.name}".layoutString,
                                 typography = Typography.TITLE_LARGE,
+                                color = contentColor,
                             )
 
                         )
                         addContent(
                             text(
-                                text = "Average: ${
-                                    String.format(
-                                        Locale.getDefault(),
-                                        "%.1f",
-                                        metadata.totalAverageMoodValue
-                                    )
-                                }".layoutString,
+                                text = "${metadata.volatility?.name}".layoutString,
                                 typography = Typography.LABEL_SMALL,
+                                color = contentColor,
                             )
                         )
                     }
@@ -161,8 +167,9 @@ private fun helloLayoutPreview2(context: Context): TilePreviewData {
                 context = context,
                 deviceConfiguration = it.deviceConfiguration,
                 metadata = AppMetadata(
-                    totalAverageMood = Mood.EXCITED,
-                    totalAverageMoodValue = 8.2f,
+                    mostFrequentMood = Mood.EXCITED,
+                    volatility = Volatility.ModeratelyVariable,
+                    volatilityValue = 4.5f,
                 ),
             )
         )

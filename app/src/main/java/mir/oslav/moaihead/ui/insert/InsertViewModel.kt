@@ -1,15 +1,21 @@
 package mir.oslav.moaihead.ui.insert
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import mir.oslav.moaihead.PhoneWearOsListenerService
+import mir.oslav.moaihead.ui.entry.EntryViewModel
 import moaihead.data.BaseDataSourceRepository
 import moaihead.data.model.Mood
 import moaihead.data.model.PlainMoodEntry
+import moaihead.ui.BaseEntryViewModel
 import javax.inject.Inject
 
 
@@ -19,30 +25,12 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class InsertViewModel @Inject constructor(
-    val repo: BaseDataSourceRepository,
-) : ViewModel() {
-
-
-    private val mNotesByMood: MutableStateFlow<List<Pair<String, Int>>> =
-        MutableStateFlow(value = emptyList())
-    val notesByMood: StateFlow<List<Pair<String, Int>>> = mNotesByMood.asStateFlow()
-
-
-    fun loadNotesForMood(mood: Mood) {
-        viewModelScope.launch {
-            val filtered = repo.moodData.value
-                .filter(predicate = { it.mood == mood })
-                .filter(predicate = { it.note != null })
-
-            val grouped = filtered.groupBy(keySelector = { it.note!! })
-
-            mNotesByMood.value = grouped
-                .map(transform = { (note, entries) -> note to entries.size })
-                .sortedByDescending(selector = { it.second })
-
-        }
-    }
-
+    repo: BaseDataSourceRepository,
+    @ApplicationContext
+    private val context: Context,
+) : BaseEntryViewModel(
+    repo = repo,
+) {
 
     fun insert(
         mood: Mood,
@@ -56,6 +44,11 @@ class InsertViewModel @Inject constructor(
                     timestamp = System.currentTimeMillis(),
                     source = 1,
                 )
+            )
+            //Updating metadata for WearOS after new entry
+            PhoneWearOsListenerService.onMetadataSyncRequested(
+                context = context,
+                repo = repo,
             )
         }
     }

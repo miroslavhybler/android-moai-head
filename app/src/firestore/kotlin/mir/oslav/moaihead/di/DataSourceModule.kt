@@ -29,14 +29,14 @@ class FirestoreLocalToRemoteSyncer @Inject constructor(
     override val syncState: Flow<SyncState>
         get() = firestoreRepo.syncState.map {
             when (it) {
-                is LocalToRemoteSyncRepo.State.SyncFinished -> SyncState.SyncFinished(it.isSuccess)
+                is LocalToRemoteSyncRepo.State.SyncFinished -> SyncState.SyncFinished(isSuccess = it.isSuccess)
                 LocalToRemoteSyncRepo.State.SyncRunning -> SyncState.SyncRunning
                 LocalToRemoteSyncRepo.State.Unknown -> SyncState.Unknown
             }
         }
 
     override fun requestSync() {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(context = Dispatchers.IO).launch {
             firestoreRepo.tryRequestSync()
         }
     }
@@ -48,7 +48,9 @@ class FirestoreLocalToRemoteSyncer @Inject constructor(
 abstract class DataSourceModule {
 
     @Binds
-    abstract fun bindSyncer(impl: FirestoreLocalToRemoteSyncer): LocalToRemoteSyncer
+    abstract fun bindSyncer(
+        impl: FirestoreLocalToRemoteSyncer,
+    ): LocalToRemoteSyncer
 
     companion object {
         @Provides

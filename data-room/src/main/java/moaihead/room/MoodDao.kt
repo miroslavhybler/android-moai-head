@@ -16,10 +16,6 @@ internal abstract class MoodDao : LocalDatabase.BaseDao<MoodEntity> {
     internal abstract suspend fun getAll(): List<MoodEntity>
 
 
-    @Query(value ="SELECT AVG(mood) FROM mood")
-    internal abstract suspend fun getAllTimeMoodAverage(): Float
-
-
     @Query(value ="SELECT * FROM mood WHERE is_synchronized = false")
     internal abstract suspend fun getAllNonSynchronized(): List<MoodEntity>
 }

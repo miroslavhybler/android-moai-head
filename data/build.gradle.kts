@@ -12,6 +12,10 @@ android {
         version = release(36)
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     defaultConfig {
         minSdk = 31
 

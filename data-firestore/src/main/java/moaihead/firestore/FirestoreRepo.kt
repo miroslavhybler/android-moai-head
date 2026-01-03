@@ -63,6 +63,10 @@ class FirestoreRepo @Inject constructor() : BaseDataSourceRepository() {
         }
     }
 
+    override suspend fun getAllMoodEntries(): List<MoodEntry> {
+        return moodData.value
+    }
+
 
     override suspend fun loadAllMoodData() {
         firestore.collection(MOOD_COLLECTION)
@@ -92,12 +96,6 @@ class FirestoreRepo @Inject constructor() : BaseDataSourceRepository() {
                 e.printStackTrace()
             }
     }
-
-
-    override suspend fun getTotalAverageMood(): Float {
-        return mAllData.value.map(transform = { it.mood.value }).average().toFloat()
-    }
-
 
     suspend fun signIn() {
         if (isAuthorized.value || isAuthorizing) {

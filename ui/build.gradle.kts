@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(notation = libs.plugins.android.library)
+    alias(notation = libs.plugins.kotlin.android)
+    alias(notation = libs.plugins.kotlin.compose)
     alias(notation = libs.plugins.ksp)
 }
 
@@ -45,16 +45,16 @@ android {
 
 dependencies {
 
-    implementation(project(":data"))
+    implementation(dependencyNotation = project(":data"))
 
-    implementation(libs.androidx.core.ktx)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.shapes)
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(dependencyNotation = libs.androidx.core.ktx)
+    implementation(dependencyNotation = platform(libs.androidx.compose.bom))
+    implementation(dependencyNotation = libs.androidx.compose.ui)
+    implementation(dependencyNotation = libs.androidx.compose.ui.graphics)
+    implementation(dependencyNotation = libs.androidx.compose.ui.tooling.preview)
+    implementation(dependencyNotation = libs.androidx.compose.material3)
+    implementation(dependencyNotation = libs.androidx.shapes)
+    implementation(dependencyNotation = libs.androidx.lifecycle.viewmodel.ktx)
 
 
     /** Hilt DI for dependency injection (https://developer.android.com/training/dependency-injection/hilt-android) */
@@ -64,7 +64,7 @@ dependencies {
     ksp(dependencyNotation = libs.hilt.compiler)
 
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(dependencyNotation = libs.junit)
+    androidTestImplementation(dependencyNotation = libs.androidx.junit)
+    androidTestImplementation(dependencyNotation = libs.androidx.espresso.core)
 }

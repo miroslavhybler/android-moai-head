@@ -30,6 +30,11 @@ public abstract class BaseDataSourceRepository public constructor() {
      */
     abstract val moodData: StateFlow<List<MoodEntry>>
 
+    /**
+     * Returns all mood entries.
+     */
+    abstract suspend fun getAllMoodEntries(): List<MoodEntry>
+
 
     /**
      * Loads all mood data from the data source.
@@ -56,13 +61,6 @@ public abstract class BaseDataSourceRepository public constructor() {
      * @param entry The [MoodEntry] to be deleted.
      */
     abstract suspend fun deleteMood(entry: MoodEntry): Unit
-
-
-    /**
-     * Calculates the total average mood.
-     * @return The average mood as a [Float].
-     */
-    abstract suspend fun getTotalAverageMood(): Float
 
 
     /**

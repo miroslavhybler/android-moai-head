@@ -19,6 +19,7 @@ data class PlainMoodEntry constructor(
     val timestamp: Long,
     val note: String?,
     val source: Int,
+    val isSynchronized: Boolean = false,
 ) {
     companion object {
         private val json = Json(builderAction = {

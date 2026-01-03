@@ -33,12 +33,6 @@ import kotlinx.coroutines.flow.Flow
     exportSchema = true,
     autoMigrations = [],
 )
-@TypeConverters(
-    value = [
-
-    ]
-
-)
 internal abstract class LocalDatabase public constructor() : RoomDatabase() {
 
     companion object {

@@ -55,6 +55,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf(
+            "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
+        )
     }
     kotlin {
         jvmToolchain(jdkVersion = 11)
@@ -99,6 +102,9 @@ dependencies {
     implementation(dependencyNotation = libs.hilt.common)
     ksp(dependencyNotation = libs.hilt.compiler)
     implementation(dependencyNotation = libs.hilt.navigation.compose)
+
+    /** Room Database for local data storage (https://developer.android.com/training/data-storage/room) */
+    ksp(dependencyNotation = libs.room.compiler)
 
     /** WearOS */
     implementation(dependencyNotation = libs.play.services.wearable)

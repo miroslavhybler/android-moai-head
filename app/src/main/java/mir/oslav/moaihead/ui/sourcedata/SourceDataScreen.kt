@@ -171,7 +171,7 @@ private fun SourceDataScreenImpl(
             ) {
                 items(
                     items = data,
-                    key = { item -> item.timestamp.epochSecond }
+                    key = { item -> item.timestamp.toEpochMilli() }
                 ) { item ->
                     Row(
                         modifier = Modifier
