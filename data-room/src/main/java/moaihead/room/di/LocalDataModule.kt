@@ -22,5 +22,7 @@ abstract class LocalDataModule {
     @Binds
     @Singleton
     @LocalSource
-    abstract fun bindLocalDataSource(impl: LocalDatabaseRepo): BaseDataSourceRepository
+    abstract fun bindLocalDataSource(
+        impl: LocalDatabaseRepo,
+    ): BaseDataSourceRepository
 }

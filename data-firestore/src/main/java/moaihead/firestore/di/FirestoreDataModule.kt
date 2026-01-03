@@ -22,5 +22,7 @@ abstract class FirestoreDataModule {
     @Binds
     @Singleton
     @RemoteSource
-    abstract fun bindRemoteDataSource(impl: FirestoreRepo): BaseDataSourceRepository
+    abstract fun bindRemoteDataSource(
+        impl: FirestoreRepo,
+    ): BaseDataSourceRepository
 }
